@@ -1,0 +1,14 @@
+<section class="services">
+  <div class="container">
+    <h1 class="title">{{ 'services_title' | t }}</h1>
+    <p class="subtitle">{{ 'services_subtitle' | t }}</p>
+
+    <div class="grid">
+      <div class="card" *ngFor="let svc of services">
+        <div class="icon" [innerHTML]="svc.icon"></div>
+        <h3 class="card-title">{{ svc.title | t }}</h3>
+        <p class="card-desc">{{ svc.desc | t }}</p>
+      </div>
+    </div>
+  </div>
+</section>

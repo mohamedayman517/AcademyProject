@@ -1,0 +1,8 @@
+.api-health { padding: 1rem; }
+.api-health section { margin: 1rem 0; }
+.api-health table { width: 100%; border-collapse: collapse; }
+.api-health th, .api-health td { border: 1px solid #ddd; padding: 8px; }
+.api-health tr.ok { background: #e9f7ef; }
+.api-health tr.fail { background: #fdecea; }
+.api-health input { width: 420px; max-width: 100%; margin-right: .5rem; }
+.api-health button { margin-right: .5rem; }

@@ -1,0 +1,59 @@
+<div class="api-test-container">
+  <h2>اختبار الاتصال بـ API</h2>
+  
+  <div class="test-info">
+    <p><strong>خادم API:</strong> http://95.216.63.80:255</p>
+    <p><strong>عدد نقاط النهاية المختبرة:</strong> {{ testResults.length }}</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>جاري اختبار الاتصال...</p>
+    <div class="spinner"></div>
+  </div>
+
+  <div *ngIf="!isLoading && testResults.length > 0" class="results-container">
+    <h3>نتائج الاختبار</h3>
+    
+    <div class="summary">
+      <div class="summary-item success">
+        <span class="label">نجح:</span>
+        <span class="value">{{ getSuccessCount() }}</span>
+      </div>
+      <div class="summary-item error">
+        <span class="label">فشل:</span>
+        <span class="value">{{ getErrorCount() }}</span>
+      </div>
+    </div>
+
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>نقطة النهاية</th>
+          <th>الحالة</th>
+          <th>وقت الاستجابة (ms)</th>
+          <th>عدد البيانات</th>
+          <th>الرسالة</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let result of testResults" [class]="getStatusClass(result.status)">
+          <td>{{ result.name }}</td>
+          <td>
+            <span class="status-badge" [class]="result.status">
+              {{ result.status === 'success' ? 'نجح' : 'فشل' }}
+            </span>
+          </td>
+          <td>{{ result.responseTime }}</td>
+          <td>{{ result.dataCount }}</td>
+          <td>{{ result.message }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="actions">
+    <button (click)="runBasicTests()" [disabled]="isLoading" class="test-button">
+      {{ isLoading ? 'جاري الاختبار...' : 'إعادة تشغيل الاختبار' }}
+    </button>
+  </div>
+</div>

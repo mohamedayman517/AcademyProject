@@ -1,0 +1,20 @@
+<section class="login" dir="rtl">
+  <div class="container">
+    <h1>{{ 'login_title' | t }}</h1>
+    <p class="intro">{{ 'login_intro' | t }}</p>
+
+    <div *ngIf="error" class="alert error">{{ error }}</div>
+
+    <form (ngSubmit)="submit()" #f="ngForm" class="form">
+      <div class="row">
+        <label>{{ 'email_lbl' | t }}</label>
+        <input name="email" type="email" [(ngModel)]="email" [disabled]="submitting" required />
+      </div>
+      <div class="row">
+        <label>{{ 'password_lbl' | t }}</label>
+        <input name="password" type="password" [(ngModel)]="password" [disabled]="submitting" required />
+      </div>
+      <button class="btn" [disabled]="submitting">{{ submitting ? ('logging_in' | t) : ('login_btn' | t) }}</button>
+    </form>
+  </div>
+</section>

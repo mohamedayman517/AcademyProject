@@ -1,0 +1,61 @@
+<section class="careers-page" dir="rtl">
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">الوظائف المتاحة</h1>
+      <p class="page-description">انضم إلى فريق الأكاديمية وساهم في بناء مستقبل التعلم والابتكار</p>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>جاري تحميل الوظائف...</p>
+    </div>
+    
+    <div *ngIf="error" class="error-state">
+      <div class="error-icon">⚠️</div>
+      <p>{{ error }}</p>
+    </div>
+
+    <div class="jobs-grid" *ngIf="!loading && !error">
+      <div class="job-card" *ngFor="let j of jobs">
+        <div class="job-header">
+          <h3 class="job-title">{{ j.title }}</h3>
+          <div class="job-badge">وظيفة جديدة</div>
+        </div>
+        <div class="job-details">
+          <div class="detail-item" *ngIf="j.branchId">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+            </svg>
+            <span>الفرع: {{ j.branchId }}</span>
+          </div>
+          <div class="detail-item">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+            </svg>
+            <span>دوام كامل</span>
+          </div>
+        </div>
+        <p class="job-description">{{ j.description }}</p>
+        <button class="apply-btn" (click)="apply(j)">
+          <span>تقديم الآن</span>
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M5 12h14m-7-7l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none"/>
+          </svg>
+        </button>
+      </div>
+      <div class="empty-state" *ngIf="jobs.length === 0">
+        <div class="empty-icon">💼</div>
+        <h3>لا توجد وظائف متاحة حالياً</h3>
+        <p>نعمل على إضافة المزيد من الفرص الوظيفية قريباً</p>
+      </div>
+    </div>
+
+    <div class="cta-section">
+      <div class="cta-card">
+        <h3>لا ترى الوظيفة المناسبة؟</h3>
+        <p>تواصل معنا عبر صفحة اتصل بنا وأرسل سيرتك الذاتية</p>
+        <button class="cta-btn" routerLink="/contact">تواصل معنا</button>
+      </div>
+    </div>
+  </div>
+</section>

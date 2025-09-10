@@ -1,0 +1,57 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Node / Angular
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.angular/
+.angular/cache/
+
+# Env
+.env
+*.env*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.venv/
+**/.venv/
+.env/
+
+# Build / Coverage
+coverage/
+.coverage
+.cache/
+
+# OS archives
+*.zip
+*.tar
+*.gz
+
+# Frontend specific
+frontend/academy-angular/node_modules/
+frontend/academy-angular/dist/
+
+# Backend specific
+backend/.venv/
+backend/__pycache__/
+
+# Misc
+.qodo/

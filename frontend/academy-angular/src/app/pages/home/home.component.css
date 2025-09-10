@@ -1,0 +1,457 @@
+/* Hero Section Styles */
+.hero-section {
+  background: var(--gradient);
+  color: white;
+  padding: 0; /* إزالة هوامش جانبية للتمدد الكامل */
+  min-height: 720px; /* ارتفاع أكبر لملء الفراغ */
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  direction: rtl;
+  /* Full-bleed: اكسر حدود الحاوية للأطراف */
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+/* طبقة زخرفية خفيفة تشبه النجوم/النقاط */
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 2px);
+  background-size: 18px 18px;
+  opacity: 0.18;
+  pointer-events: none;
+}
+.hero-section .container {
+  width: 100%; /* تمدد كامل بدون حواف بيضاء */
+  padding: 0;  /* إزالة الحشوات داخل الحاوية */
+}
+
+.hero-content {
+  display: grid;
+  grid-template-columns: 0.7fr 1.3fr; /* عمود الصورة أكبر */
+  gap: 50px;
+  align-items: center;
+  /* RTL: ضع النص يميناً والصورة يساراً */
+  grid-template-areas: 'text image';
+  padding: 100px 32px; /* زيادة المسافة الرأسية */
+}
+
+.hero-text {
+  max-width: 600px;
+  grid-area: text;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 20px 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hero-description {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin: 0 0 40px 0;
+  opacity: 0.9;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2a76d2, #1e3c72);
+  color: #ffffff;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.2);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid rgba(255,255,255,0.85);
+  padding: 13px 28px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: white;
+  color: #667eea;
+  transform: translateY(-2px);
+}
+
+.hero-image {
+  text-align: center;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  grid-area: image;
+}
+
+.hero-img {
+  width: 100%;
+  height: clamp(520px, 68vh, 720px); /* صورة أكبر */
+  object-fit: cover;
+  border-radius: 28px;
+  box-shadow: 0 12px 34px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+/* Statistics Section Styles */
+.stats-section {
+  padding: 50px 0;
+  background: var(--gradient); /* نفس خلفية الهيرو */
+  /* Full-bleed مثل الهيرو */
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 40px;
+  text-align: center;
+  align-items: start;
+}
+
+.stat-item {
+  padding: 10px 10px;
+  transition: transform 0.2s ease;
+  color: #fff;
+}
+
+.stat-item:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  margin: 0 auto 16px;
+  width: 64px;
+  height: 64px;
+  background: transparent;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0 0 6px 0;
+  letter-spacing: 0.2px;
+}
+
+.stat-label {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+    grid-template-areas:
+      'image'
+      'text';
+  }
+  
+  .hero-section { min-height: 560px; }
+  .hero-img { height: clamp(320px, 50vh, 520px); }
+  
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-description {
+    font-size: 1.1rem;
+  }
+  
+  .hero-buttons {
+    justify-content: center;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 30px;
+  }
+  
+  .stat-number {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    padding: 60px 0;
+  }
+  
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+  
+  .stats-section {
+    padding: 60px 0;
+  }
+}
+
+/* Why Academy Creativity Section */
+.why-academy-section {
+  padding: 80px 0;
+  background: #f8f9fa;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.feature-card {
+  text-align: center;
+  padding: 30px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #2a76d2, #4A90E2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: white;
+}
+
+/* About Us Section */
+.about-us-section {
+  padding: 80px 0;
+  background: white;
+}
+
+.about-card {
+  padding: 40px;
+  background: #f8f9fa;
+  border-radius: 16px;
+  border-left: 4px solid #2a76d2;
+}
+
+/* Courses Section */
+.courses-section {
+  padding: 80px 0;
+  background: #f8f9fa;
+}
+
+.course-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.course-image {
+  position: relative;
+}
+
+.course-level {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #2a76d2;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.course-content {
+  padding: 24px;
+}
+
+.course-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 8px;
+}
+
+.course-description {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.course-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.course-button {
+  width: 100%;
+  background: linear-gradient(135deg, #2a76d2, #4A90E2);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.course-button:hover {
+  background: linear-gradient(135deg, #1e5bb8, #357ABD);
+  transform: translateY(-2px);
+}
+
+.view-all-button {
+  background: transparent;
+  color: #2a76d2;
+  border: 2px solid #2a76d2;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-all-button:hover {
+  background: #2a76d2;
+  color: white;
+}
+
+/* Call to Action Section */
+.cta-section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #2a76d2, #1e3c72);
+  color: white;
+  text-align: center;
+}
+
+.cta-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 36px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.signup-button {
+  background: white;
+  color: #2a76d2;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.signup-button:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design for New Sections */
+@media (max-width: 768px) {
+  .why-academy-section,
+  .about-us-section,
+  .courses-section,
+  .cta-section {
+    padding: 60px 0;
+  }
+  
+  .feature-card {
+    padding: 24px 16px;
+  }
+  
+  .about-card {
+    padding: 24px;
+  }
+  
+  .course-content {
+    padding: 20px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

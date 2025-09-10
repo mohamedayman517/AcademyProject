@@ -1,0 +1,18 @@
+<section class="students-evaluations-page" dir="rtl">
+  <div class="container">
+    <div class="page-header">
+      <h1>{{ 'evaluations_screen' | t }}</h1>
+      <p>{{ 'manage_student_evaluations' | t }}</p>
+    </div>
+
+    <div *ngIf="loading" class="loading">{{ 'loading_plain' | t }}</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div *ngIf="!loading && !error" class="content">
+      <div class="info-card">
+        <h2>{{ 'evaluations_management' | t }}</h2>
+        <p>{{ 'evaluations_placeholder' | t }}</p>
+      </div>
+    </div>
+  </div>
+</section>

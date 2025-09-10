@@ -1,0 +1,211 @@
+<section class="branches-page" dir="rtl">
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">{{ 'branches_title' | t }}</h1>
+      <p class="page-description">{{ 'branches_desc' | t }}</p>
+      <div class="header-actions" *ngIf="isAdmin">
+        <button class="btn btn-primary" (click)="addBranch()">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
+          {{ 'add_branch' | t }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>{{ 'loading_plain' | t }}</p>
+    </div>
+    
+    <div *ngIf="!loading && error" class="error-state">
+      <div class="error-icon">⚠️</div>
+      <p>{{ error }}</p>
+    </div>
+
+    <div *ngIf="!loading && !error && branches.length === 0" class="empty-state">
+      <div class="empty-icon">🏢</div>
+      <h3>{{ 'no_branches_title' | t }}</h3>
+      <p>{{ 'no_branches_desc' | t }}</p>
+    </div>
+
+    <div class="branches-grid" *ngIf="!loading && !error && branches.length">
+      <div class="branch-card" *ngFor="let b of branches">
+        <div class="card-image" *ngIf="b.imageUrl">
+          <img [src]="b.imageUrl" [alt]="b.name" class="branch-image">
+        </div>
+        <div class="card-content">
+          <h3 class="branch-name">{{ b.name }}</h3>
+          <div class="branch-location" *ngIf="b.city || b.governorate">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+            </svg>
+            <span>{{ b.city }} <span *ngIf="b.governorate">- {{ b.governorate }}</span></span>
+          </div>
+          <p class="branch-address">{{ b.address }}</p>
+          <div class="branch-contact" *ngIf="b.phone">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path d="M6.6 10.8c1.5 3 3.6 5.1 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1.3.5 2.7.8 4.1.8.7 0 1.3.6 1.3 1.3v3.5c0 .7-.6 1.3-1.3 1.3C9.7 22 2 14.3 2 4.3 2 3.6 2.6 3 3.3 3H6.8c.7 0 1.3.6 1.3 1.3 0 1.4.3 2.8.8 4.1.1.4 0 .9-.3 1.2L6.6 10.8z" fill="currentColor"/>
+            </svg>
+            <span>{{ b.phone }}</span>
+          </div>
+          <div class="admin-actions" *ngIf="isAdmin">
+            <button class="edit-btn" (click)="editBranch(b)" [title]="'edit' | t">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="delete-btn" (click)="deleteBranch(b)" [title]="'delete' | t">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clase Master Section -->
+    <div class="clases-section" *ngIf="!loading && !error && clases.length">
+      <h2 class="section-title">{{ 'halls_title' | t }}</h2>
+      <div class="clases-grid">
+        <div class="clase-card" *ngFor="let c of clases">
+          <div class="card-content">
+            <h3 class="clase-title">{{ c.title }}</h3>
+            <div class="clase-location" *ngIf="c.location">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+              </svg>
+              <span>{{ c.location }}</span>
+            </div>
+            <p class="clase-address" *ngIf="c.address">{{ c.address }}</p>
+            <div class="clase-contacts">
+              <div class="contact-item" *ngIf="c.ownerMobil">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                  <path d="M6.6 10.8c1.5 3 3.6 5.1 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1.3.5 2.7.8 4.1.8.7 0 1.3.6 1.3 1.3v3.5c0 .7-.6 1.3-1.3 1.3C9.7 22 2 14.3 2 4.3 2 3.6 2.6 3 3.3 3H6.8c.7 0 1.3.6 1.3 1.3 0 1.4.3 2.8.8 4.1.1.4 0 .9-.3 1.2L6.6 10.8z" fill="currentColor"/>
+                </svg>
+                <span>{{ c.ownerMobil }}</span>
+              </div>
+              <div class="contact-item" *ngIf="c.email">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                  <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 2l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                </svg>
+                <span>{{ c.email }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Branch Form Modal -->
+    <div class="modal-overlay" *ngIf="showForm" (click)="cancelForm()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ 'add_branch_modal_title' | t }}</h3>
+          <button class="close-btn" (click)="cancelForm()">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="form-description">{{ 'add_branch_modal_desc' | t }}</p>
+          <form (ngSubmit)="saveBranch()">
+            <div class="form-group">
+              <label for="AcademyDataId">{{ 'select_academy_req' | t }}</label>
+              <select 
+                id="AcademyDataId" 
+                [(ngModel)]="newBranch.AcademyDataId" 
+                name="AcademyDataId"
+                required>
+                <option value="">{{ 'select_academy_opt' | t }}</option>
+                <option *ngFor="let academy of academies" [value]="academy.id">
+                  {{ academy.name }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="BranchNameL1">{{ 'branch_name_req' | t }}</label>
+              <input 
+                type="text" 
+                id="BranchNameL1" 
+                [(ngModel)]="newBranch.BranchNameL1" 
+                name="BranchNameL1"
+                required
+                minlength="3"
+                maxlength="100"
+                placeholder="Enter branch name">
+            </div>
+            
+            <div class="form-group">
+              <label for="BranchNameL2">{{ 'branch_name_2' | t }}</label>
+              <input 
+                type="text" 
+                id="BranchNameL2" 
+                [(ngModel)]="newBranch.BranchNameL2" 
+                name="BranchNameL2"
+                maxlength="100"
+                placeholder="Enter branch name (2)">
+            </div>
+            
+            <div class="form-group">
+              <label for="BranchAddress">{{ 'branch_address_req' | t }}</label>
+              <textarea 
+                id="BranchAddress" 
+                [(ngModel)]="newBranch.BranchAddress" 
+                name="BranchAddress"
+                required
+                minlength="10"
+                maxlength="250"
+                rows="3"
+                placeholder="Enter branch address"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="BranchMobile">{{ 'mobile_req' | t }}</label>
+              <input 
+                type="tel" 
+                id="BranchMobile" 
+                [(ngModel)]="newBranch.BranchMobile" 
+                name="BranchMobile"
+                required
+                pattern="[0-9+\-\s]+"
+                placeholder="Enter mobile number">
+            </div>
+            
+            <div class="form-group">
+              <label for="BranchPhone">{{ 'phone_opt' | t }}</label>
+              <input 
+                type="tel" 
+                id="BranchPhone" 
+                [(ngModel)]="newBranch.BranchPhone" 
+                name="BranchPhone"
+                pattern="[0-9+\-\s]+"
+                placeholder="Enter phone number">
+            </div>
+
+            <div class="form-group">
+              <label for="BranchWhatsapp">{{ 'whatsapp_opt' | t }}</label>
+              <input 
+                type="tel" 
+                id="BranchWhatsapp" 
+                [(ngModel)]="newBranch.BranchWhatsapp" 
+                name="BranchWhatsapp"
+                pattern="[0-9+\-\s]+"
+                placeholder="Enter whatsapp number">
+            </div>
+            
+            <div class="form-group">
+              <label for="BranchEmail">{{ 'email_opt' | t }}</label>
+              <input 
+                type="email" 
+                id="BranchEmail" 
+                [(ngModel)]="newBranch.BranchEmail" 
+                name="BranchEmail"
+                placeholder="Enter email address">
+            </div>
+            
+            <div class="form-actions">
+              <button type="button" class="cancel-btn" (click)="cancelForm()">{{ 'cancel_btn' | t }}</button>
+              <button type="submit" class="submit-btn" [disabled]="isSubmitting">
+                {{ isSubmitting ? ('saving' | t) : (editingBranch ? ('save_changes_btn' | t) : ('add_branch_submit' | t)) }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

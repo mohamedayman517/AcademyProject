@@ -1,0 +1,18 @@
+<section class="jobs-page" dir="rtl">
+  <div class="container">
+    <div class="page-header">
+      <h1>{{ 'jobs' | t }}</h1>
+      <p>{{ 'manage_job_opportunities' | t }}</p>
+    </div>
+
+    <div *ngIf="loading" class="loading">{{ 'loading_plain' | t }}</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div *ngIf="!loading && !error" class="content">
+      <div class="info-card">
+        <h2>{{ 'jobs_management' | t }}</h2>
+        <p>{{ 'jobs_placeholder' | t }}</p>
+      </div>
+    </div>
+  </div>
+</section>

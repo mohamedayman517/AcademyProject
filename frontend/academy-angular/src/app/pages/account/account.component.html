@@ -1,0 +1,146 @@
+<section class="account-page container" dir="rtl">
+  <header class="page-header">
+    <h2 class="title">حسابي</h2>
+    <p class="subtitle">الملف الشخصي، الأمان، ومعلومات الأكاديمية</p>
+  </header>
+
+    <div *ngIf="loading" class="status">{{ 'loading_plain' | t }}</div>
+    <div *ngIf="!loading && error" class="status error">{{ error }}</div>
+
+    <div *ngIf="!loading && !error && user">
+      <!-- Profile Card -->
+      <div class="card">
+        <div class="card-header profile-header">
+          <div class="avatar">
+            <img *ngIf="tempPreviewUrl; else currentAvatar" [src]="tempPreviewUrl" alt="avatar preview">
+            <ng-template #currentAvatar>
+              <img *ngIf="profilePreviewUrl; else placeholder" [src]="profilePreviewUrl" alt="avatar">
+              <ng-template #placeholder>
+                <div class="avatar-placeholder">👤</div>
+              </ng-template>
+            </ng-template>
+          </div>
+          <div class="identity">
+            <h3 class="name">{{ user?.fullName || (user?.firstName || '') + ' ' + (user?.lastName || '') }}</h3>
+            <div class="meta-row">
+              <span class="meta">{{ user?.email || user?.Email }}</span>
+              <span class="dot"></span>
+              <span class="meta" *ngIf="lastLogin">{{ 'last_login' | t }} {{ lastLogin }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="lang-switcher" style="display:grid;gap:8px;margin-bottom:8px;">
+            <label class="label">{{ 'language' | t }}</label>
+            <div class="inline">
+              <button class="btn" (click)="setLang('ar')">{{ 'arabic' | t }}</button>
+              <button class="btn" (click)="setLang('en')">{{ 'english' | t }}</button>
+            </div>
+          </div>
+
+          <h4 class="section-title">{{ 'account_profile' | t }}</h4>
+          <div class="row two-cols">
+            <div>
+              <label class="label">{{ 'upload_avatar' | t }}</label>
+              <input class="input" type="file" (change)="handleFileChange($event)">
+            </div>
+            <div class="actions-right">
+              <button class="btn btn-primary" [disabled]="!profileFile || busyAction==='upload'" (click)="uploadProfile()">{{ 'upload_photo' | t }}</button>
+            </div>
+          </div>
+
+          <h4 class="section-title">{{ 'social_accounts' | t }}</h4>
+          <div class="row two-cols">
+            <div>
+              <label class="label">LinkedIn</label>
+              <input class="input" type="url" [(ngModel)]="linkedIn" placeholder="https://linkedin.com/in/username">
+            </div>
+            <div>
+              <label class="label">Facebook</label>
+              <input class="input" type="url" [(ngModel)]="facebook" placeholder="https://facebook.com/username">
+            </div>
+          </div>
+          
+          <h4 class="section-title">الأكاديمية والفرع</h4>
+          <div class="row two-cols">
+            <div>
+              <label class="label">{{ 'academy_branch' | t }}</label>
+              <select class="input" [(ngModel)]="selectedAcademy">
+                <option [ngValue]="''">{{ 'choose_academy' | t }}</option>
+                <option *ngFor="let a of academies" [ngValue]="a.id">{{ a.academyNameL1 || a.AcademyNameL1 || a.name || a.id }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="label">{{ 'choose_branch' | t }}</label>
+              <select class="input" [(ngModel)]="selectedBranch">
+                <option [ngValue]="''">{{ 'choose_branch' | t }}</option>
+                <option *ngFor="let b of branchesForSelectedAcademy" [ngValue]="b.id">
+                  {{ b.branchNameL1 || b.BranchNameL1 || b.name || b.id }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row actions-right">
+            <button class="btn btn-primary" [disabled]="busyAction==='updateSocial'" (click)="saveSocialAndStudent()">{{ 'save' | t }}</button>
+          </div>
+
+          <h4 class="section-title">{{ 'contact_verify' | t }}</h4>
+          <div class="row two-cols">
+            <div>
+              <label class="label">{{ 'email' | t }}</label>
+              <div class="inline">
+                <input class="input" [ngModel]="emailForConfirm" disabled>
+                <button class="btn" [disabled]="busyAction==='sendEmail'" (click)="sendEmailConfirm()">{{ 'confirm' | t }}</button>
+              </div>
+            </div>
+            <div>
+              <label class="label">{{ 'phone' | t }}</label>
+              <div class="inline">
+                <input class="input" [(ngModel)]="phone" placeholder="05xxxxxxxx">
+                <button class="btn" [disabled]="busyAction==='sendPhone'" (click)="sendPhoneCode()">{{ 'send_code' | t }}</button>
+                <input class="input" [(ngModel)]="phoneCode" placeholder="الرمز">
+                <button class="btn" [disabled]="busyAction==='confirmPhone'" (click)="confirmPhone()">{{ 'confirm' | t }}</button>
+              </div>
+            </div>
+          </div>
+          
+          <h4 class="section-title">{{ 'security_password' | t }}</h4>
+          <div class="row two-cols">
+            <div>
+              <label class="label">{{ 'current_password' | t }}</label>
+              <input class="input" type="password" [(ngModel)]="currentPassword">
+            </div>
+            <div>
+              <label class="label">{{ 'new_password' | t }}</label>
+              <input class="input" type="password" [(ngModel)]="newPassword">
+            </div>
+          </div>
+          <div class="row actions-right">
+            <button class="btn btn-primary" [disabled]="busyAction==='changePass'" (click)="changePassword()">{{ 'change_password' | t }}</button>
+          </div>
+          
+          <h4 class="section-title">{{ 'two_factor' | t }}</h4>
+          <div class="row actions">
+            <button class="btn" *ngIf="!twoFactorEnabled" [disabled]="busyAction==='2fa'" (click)="enable2FA()">{{ 'enable_2fa' | t }}</button>
+            <button class="btn" *ngIf="twoFactorEnabled" [disabled]="busyAction==='2fa'" (click)="disable2FA()">{{ 'disable_2fa' | t }}</button>
+          </div>
+          
+          <h4 class="section-title">{{ 'session' | t }}</h4>
+          <div class="row actions-right">
+            <button class="btn btn-danger" (click)="logout()">{{ 'logout' | t }}</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Stats -->
+      <div class="stats" *ngIf="userStats">
+        <div class="stat"><span>{{ 'courses' | t }}</span><strong>{{ userStats.courses }}</strong></div>
+        <div class="stat"><span>{{ 'students' | t }}</span><strong>{{ userStats.students }}</strong></div>
+        <div class="stat"><span>{{ 'teachers' | t }}</span><strong>{{ userStats.teachers }}</strong></div>
+        <div class="stat"><span>{{ 'academies' | t }}</span><strong>{{ userStats.academies }}</strong></div>
+      </div>
+    </div>
+</section>
+
+

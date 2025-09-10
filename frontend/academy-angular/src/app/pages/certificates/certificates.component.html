@@ -1,0 +1,18 @@
+<section class="certificates-page" dir="rtl">
+  <div class="container">
+    <div class="page-header">
+      <h1>{{ 'services' | t }}</h1>
+      <p>{{ 'manage_certificates_and_services' | t }}</p>
+    </div>
+
+    <div *ngIf="loading" class="loading">{{ 'loading_plain' | t }}</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div *ngIf="!loading && !error" class="content">
+      <div class="info-card">
+        <h2>{{ 'certificates_management' | t }}</h2>
+        <p>{{ 'certificates_placeholder' | t }}</p>
+      </div>
+    </div>
+  </div>
+</section>

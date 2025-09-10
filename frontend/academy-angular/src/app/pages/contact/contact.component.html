@@ -1,0 +1,148 @@
+<section class="contact-page" dir="rtl">
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">اتصل بنا</h1>
+      <p class="page-description">يسعدنا تواصلك معنا. املأ النموذج التالي وسنعود إليك قريباً</p>
+    </div>
+
+    <div class="contact-content">
+      <div class="contact-form-section">
+        <div class="form-header">
+          <h2>أرسل لنا رسالة</h2>
+          <p>نحن هنا لمساعدتك والإجابة على استفساراتك</p>
+        </div>
+
+        <div *ngIf="success" class="alert success">
+          <div class="alert-icon">✅</div>
+          <div class="alert-content">
+            <h4>تم الإرسال بنجاح!</h4>
+            <p>{{ success }}</p>
+          </div>
+        </div>
+        
+        <div *ngIf="error" class="alert error">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <h4>حدث خطأ</h4>
+            <p>{{ error }}</p>
+          </div>
+        </div>
+
+        <form (ngSubmit)="submit()" #f="ngForm" class="contact-form">
+          <div class="form-group">
+            <label class="form-label">الاسم الكامل</label>
+            <input 
+              name="name" 
+              [(ngModel)]="name" 
+              [disabled]="submitting" 
+              required 
+              class="form-input"
+              placeholder="أدخل اسمك الكامل"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">البريد الإلكتروني</label>
+            <input 
+              name="email" 
+              type="email" 
+              [(ngModel)]="email" 
+              [disabled]="submitting" 
+              required 
+              class="form-input"
+              placeholder="أدخل بريدك الإلكتروني"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">الرسالة</label>
+            <textarea 
+              name="message" 
+              rows="6" 
+              [(ngModel)]="message" 
+              [disabled]="submitting" 
+              required
+              class="form-textarea"
+              placeholder="اكتب رسالتك هنا..."
+            ></textarea>
+          </div>
+          
+          <button class="submit-btn" [disabled]="submitting">
+            <span *ngIf="!submitting">إرسال الرسالة</span>
+            <span *ngIf="submitting" class="loading-content">
+              <div class="loading-spinner"></div>
+              جارٍ الإرسال...
+            </span>
+          </button>
+        </form>
+      </div>
+
+      <div class="contact-info-section">
+        <div class="info-card">
+          <h3>معلومات التواصل</h3>
+          <div class="contact-items">
+            <div class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path d="M6.6 10.8c1.5 3 3.6 5.1 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1.3.5 2.7.8 4.1.8.7 0 1.3.6 1.3 1.3v3.5c0 .7-.6 1.3-1.3 1.3C9.7 22 2 14.3 2 4.3 2 3.6 2.6 3 3.3 3H6.8c.7 0 1.3.6 1.3 1.3 0 1.4.3 2.8.8 4.1.1.4 0 .9-.3 1.2L6.6 10.8z" fill="currentColor"/>
+                </svg>
+              </div>
+              <div class="contact-details">
+                <h4>الهاتف</h4>
+                <p>+966 11 123 4567</p>
+              </div>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 2l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                </svg>
+              </div>
+              <div class="contact-details">
+                <h4>البريد الإلكتروني</h4>
+                <p>info&#64;academy-creativity.com</p>
+              </div>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+                </svg>
+              </div>
+              <div class="contact-details">
+                <h4>العنوان</h4>
+                <p>الرياض، المملكة العربية السعودية</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="social-card">
+          <h3>تابعنا على</h3>
+          <div class="social-links">
+            <a href="#" class="social-link">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M22 5.9c-.7.3-1.5.6-2.3.7.8-.5 1.4-1.2 1.7-2.1-.7.5-1.6.8-2.5 1-1.4-1.5-3.7-1.6-5.1-.1-1 1-1.3 2.4-.9 3.7-3.1-.2-5.9-1.6-7.8-3.9-1 1.8-.5 4.1 1.2 5.2-.6 0-1.2-.2-1.7-.5 0 1.9 1.3 3.6 3.2 4-.6.2-1.3.2-1.9.1.5 1.6 2 2.7 3.7 2.7-1.6 1.2-3.6 1.9-5.6 1.9H2c2 1.3 4.4 2 6.9 2 8.3 0 12.9-6.9 12.9-12.9v-.6c.9-.6 1.6-1.3 2.2-2.2z" fill="currentColor"/>
+              </svg>
+              تويتر
+            </a>
+            <a href="#" class="social-link">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M13 3h4v4h-4v4h4v10h-4v-6h-3v-4h3V7a4 4 0 0 1 4-4z" fill="currentColor"/>
+              </svg>
+              فيسبوك
+            </a>
+            <a href="#" class="social-link">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" fill="currentColor"/>
+              </svg>
+              إنستغرام
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

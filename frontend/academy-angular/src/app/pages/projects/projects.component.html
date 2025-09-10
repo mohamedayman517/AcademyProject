@@ -1,0 +1,163 @@
+<section class="projects-page container" dir="rtl">
+  <header class="page-header">
+    <h2 class="title">{{ 'featured_projects_title' | t }}</h2>
+    <p class="subtitle">{{ 'featured_projects_subtitle' | t }}</p>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="addProject()">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
+        {{ 'add_project' | t }}
+      </button>
+      
+      <div class="debug-info">
+        <strong>معلومات التصحيح:</strong><br>
+        isAdmin: {{ isAdmin }} | showForm: {{ showForm }}<br>
+        Auth Status: {{ auth.isAuthenticated$ | async }}<br>
+        Roles: {{ auth.roles$ | async | json }}
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="loading">{{ 'loading' | t }}</div>
+  <div *ngIf="error" class="error">{{ 'fetch_projects_error' | t }}</div>
+
+  <!-- Add/Edit Project Form Modal -->
+  <div class="modal-overlay" *ngIf="showForm" (click)="cancelForm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingProject ? ('edit_project' | t) : ('add_new_project' | t) }}</h3>
+        <button class="close-btn" (click)="cancelForm()">×</button>
+      </div>
+      <div style="padding: 10px; background: #f0f0f0; margin: 10px; border-radius: 5px;">
+        <strong>Debug Info:</strong><br>
+        showForm: {{ showForm }}<br>
+        editingProject: {{ editingProject ? 'Yes' : 'No' }}<br>
+        newProject: {{ newProject | json }}
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="saveProject()">
+          <div class="form-group">
+            <label for="ProjectNameL1">{{ 'project_name_ar' | t }}</label>
+            <input 
+              type="text" 
+              id="ProjectNameL1" 
+              [(ngModel)]="newProject.ProjectNameL1" 
+              name="ProjectNameL1"
+              required
+              minlength="3"
+              maxlength="70"
+              [placeholder]="'project_name_ar_ph' | t">
+          </div>
+          
+          <div class="form-group">
+            <label for="ProjectNameL2">{{ 'project_name_en_opt' | t }}</label>
+            <input 
+              type="text" 
+              id="ProjectNameL2" 
+              [(ngModel)]="newProject.ProjectNameL2" 
+              name="ProjectNameL2"
+              maxlength="70"
+              [placeholder]="'project_name_en_ph' | t">
+          </div>
+          
+          <div class="form-group">
+            <label for="BranchesDataId">{{ 'choose_branch_req' | t }}</label>
+            <select 
+              id="BranchesDataId" 
+              [(ngModel)]="newProject.BranchesDataId" 
+              name="BranchesDataId"
+              required>
+              <option value="">{{ 'choose_branch_opt' | t }}</option>
+              <option *ngFor="let branch of branches" [value]="branch.id">
+                {{ branch.branchNameL1 || branch.name }}
+              </option>
+            </select>
+            <div *ngIf="branchesLoading" class="loading-text">{{ 'branches_loading' | t }}</div>
+            <div *ngIf="branchesError" class="error-text">{{ branchesError }}</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="ProjectStart">{{ 'project_start' | t }}</label>
+            <input 
+              type="date" 
+              id="ProjectStart" 
+              [(ngModel)]="newProject.ProjectStart" 
+              name="ProjectStart"
+              required>
+          </div>
+          
+          <div class="form-group">
+            <label for="ProjectEnd">{{ 'project_end' | t }}</label>
+            <input 
+              type="date" 
+              id="ProjectEnd" 
+              [(ngModel)]="newProject.ProjectEnd" 
+              name="ProjectEnd"
+              required>
+          </div>
+          
+          <div class="form-group">
+            <label for="ProjectResources">{{ 'resources_files_opt' | t }}</label>
+            <input 
+              type="file" 
+              id="ProjectResources" 
+              (change)="onFileSelected($event, 'ProjectResources')"
+              accept=".pdf,.doc,.docx,.zip,.rar"
+              multiple>
+            <small>{{ 'allowed_files_hint' | t }}</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="ProjectFile">{{ 'project_file_opt' | t }}</label>
+            <input 
+              type="file" 
+              id="ProjectFile" 
+              (change)="onFileSelected($event, 'ProjectFile')"
+              accept=".pdf,.doc,.docx,.zip,.rar">
+            <small>{{ 'allowed_files_hint' | t }}</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="Description">{{ 'project_desc_req' | t }}</label>
+            <textarea 
+              id="Description" 
+              [(ngModel)]="newProject.Description" 
+              name="Description"
+              required
+              minlength="3"
+              maxlength="500"
+              rows="4"
+              [placeholder]="'project_desc_ph' | t"></textarea>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="cancel-btn" (click)="cancelForm()">{{ 'cancel' | t }}</button>
+            <button type="submit" class="submit-btn" [disabled]="isSubmitting">
+              {{ isSubmitting ? ('saving' | t) : (editingProject ? ('save_changes' | t) : ('add_project_submit' | t)) }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards" *ngIf="!loading && !error">
+    <article class="project-card" *ngFor="let p of projects">
+      <div class="badge">{{ p.level }}</div>
+      <div class="body">
+        <h3 class="card-title">{{ p.title }}</h3>
+        <p class="card-desc">{{ p.description }}</p>
+        <div class="card-actions">
+          <button class="ghost" (click)="onPreview(p)">{{ 'preview_project' | t }}</button>
+          <div class="admin-actions" *ngIf="isAdmin">
+            <button class="edit-btn" (click)="editProject(p)" [title]="'edit' | t">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="delete-btn" (click)="deleteProject(p)" [title]="'delete' | t">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

@@ -1,0 +1,21 @@
+<section class="students-data-page" dir="rtl">
+  <div class="container">
+    <div class="page-header">
+      <h1>{{ 'student_data_entry' | t }}</h1>
+      <p>{{ 'manage_student_information' | t }}</p>
+    </div>
+
+    <div *ngIf="loading" class="loading">{{ 'loading_plain' | t }}</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div *ngIf="!loading && !error" class="content">
+      <div class="info-card">
+        <h2>{{ 'student_information' | t }}</h2>
+        <p>{{ 'student_data_placeholder' | t }}</p>
+        <div *ngIf="studentId" class="student-id">
+          <strong>{{ 'student_id' | t }}:</strong> {{ studentId }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

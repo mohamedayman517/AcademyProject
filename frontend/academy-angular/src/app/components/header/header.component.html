@@ -1,0 +1,274 @@
+<header class="sticky top-0 z-50 supports-[backdrop-filter]:bg-white/50 bg-white/80 backdrop-blur-md border-b border-border/60 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- الشعار -->
+      <div class="flex items-center">
+        <img 
+          src="assets/images/academy_logo-D0oHkb2u.png" 
+          alt="أكاديمية الإبداع" 
+          class="h-10 w-auto select-none"
+        />
+      </div>
+
+      <!-- شريط البحث - مخفي على الشاشات الصغيرة -->
+      <div *ngIf="isAuthenticated" class="hidden md:flex flex-1 max-w-lg mx-8">
+        <form (ngSubmit)="handleSearch($event)" class="relative w-full group">
+          <input
+            type="text"
+            [placeholder]="'common.search.placeholder' | t"
+            name="searchQueryDesktop"
+            [(ngModel)]="searchQuery"
+            (keypress)="onKeyPress($event)"
+            class="px-4 py-3 w-full rounded-full focus-visible:ring-2 focus-visible:ring-primary/30 transition-all duration-300 border-gray-200 hover:border-primary/50 focus:border-primary shadow-sm search-input-focus"
+            [class]="isRtl ? 'pl-12 pr-4' : 'pr-12 pl-4'"
+            [dir]="isRtl ? 'rtl' : 'ltr'"
+          />
+          <svg class="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 transition-colors duration-300 group-focus-within:text-primary search-icon-transition" 
+               [class]="isRtl ? 'left-4' : 'right-4'"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          
+          <!-- زر البحث - يظهر فقط عند الكتابة -->
+          <button
+            *ngIf="searchQuery.trim()"
+            type="submit"
+            class="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 search-button-animate search-button-hover"
+          >
+            {{ isRtl ? 'بحث' : 'Search' }}
+          </button>
+        </form>
+      </div>
+
+      <!-- التنقل الرئيسي - مخفي على الشاشات الصغيرة -->
+      <nav class="hidden lg:flex items-center gap-2">
+        <div *ngFor="let item of allNavigationItems" 
+             class="relative"
+             (mouseenter)="setOpenDropdown(item.name)"
+             (mouseleave)="setOpenDropdown(null)">
+          <a
+            [href]="item.href"
+            class="px-3 py-2 rounded-full text-foreground hover:text-primary hover:bg-muted transition-colors duration-200 font-medium inline-flex items-center"
+            [class]="isAdminItem(item) ? 'text-black hover:text-gray-700' : ''"
+            [dir]="isRtl ? 'rtl' : 'ltr'"
+          >
+            <svg class="h-4 w-4" [class]="isRtl ? 'ml-2' : 'mr-2'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path *ngIf="item.icon === 'Home'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+              <path *ngIf="item.icon === 'BookOpen'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+              <path *ngIf="item.icon === 'Briefcase'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
+              <path *ngIf="item.icon === 'Users'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+            </svg>
+            <span>{{ item.name }}</span>
+          </a>
+          <div *ngIf="item.children" 
+               class="absolute left-0 top-full w-56 rounded-xl border border-border bg-card shadow-lg transition-opacity"
+               [class]="openDropdown === item.name ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+               [dir]="isRtl ? 'rtl' : 'ltr'">
+            <ul class="py-2">
+              <li *ngFor="let child of item.children">
+                <a [href]="child.href" class="block px-4 py-2 hover:bg-muted text-sm" (click)="setOpenDropdown(null)">
+                  {{ child.name }}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- رسالة للطالب الذي لم يختر أكاديمية وفرع بعد -->
+        <div *ngIf="isStudent && isAuthenticated && (!studentAcademy || !studentBranch)" 
+             class="px-3 py-2 rounded-full text-orange-600 bg-orange-50 border border-orange-200 text-sm font-medium">
+          {{ isRtl ? 'يرجى اختيار الأكاديمية والفرع أولاً في صفحة الحساب لعرض العناصر المتاحة' : 'Please select Academy and Branch first in Account page to view available items' }}
+        </div>
+      </nav>
+
+      <!-- أزرار تسجيل الدخول والتسجيل أو الملف الشخصي -->
+      <div *ngIf="!isAuthenticated; else authenticatedSection" class="hidden md:flex items-center gap-3">
+        <!-- Home Page Link - يظهر فقط عندما لا يكون مسجل دخول -->
+        <a 
+          href="/" 
+          class="px-4 py-2 rounded-full text-foreground hover:text-primary hover:bg-muted transition-colors duration-200 font-medium inline-flex items-center"
+          [dir]="isRtl ? 'rtl' : 'ltr'"
+        >
+          <svg class="h-4 w-4" [class]="isRtl ? 'ml-2' : 'mr-2'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+          </svg>
+          <span>{{ 'common.nav.home' | t }}</span>
+        </a>
+        
+        <!-- Login Button -->
+        <a href="/login" class="academy-button rounded-full px-6 py-2 bg-primary text-white hover:bg-primary/90 transition-colors duration-200 inline-flex items-center">
+          <svg class="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          {{ 'common.auth.login' | t }}
+        </a>
+      </div>
+
+      <ng-template #authenticatedSection>
+        <div class="hidden md:flex items-center gap-2">
+          <!-- Home Page Link - يظهر للطلاب بجوار Profile -->
+          <a href="/" class="px-4 py-2 rounded-full text-foreground hover:text-primary hover:bg-muted transition-colors duration-200 font-medium inline-flex items-center">
+            <svg class="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            {{ 'common.nav.home' | t }}
+          </a>
+          
+          <a href="/profile" class="px-4 py-2 rounded-full text-foreground hover:text-primary hover:bg-muted transition-colors duration-200 font-medium inline-flex items-center">
+            <svg class="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            {{ isRtl ? 'الملف الشخصي' : 'Profile' }}
+          </a>
+        </div>
+      </ng-template>
+
+      <!-- زر القائمة + بروفايل للشاشات الصغيرة -->
+      <div class="md:hidden flex items-center gap-1">
+        <a *ngIf="isAuthenticated" href="/profile" class="p-2 rounded-full hover:bg-muted transition-colors duration-200" [attr.aria-label]="isRtl ? 'الطالب' : 'Student'">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+        </a>
+        <button
+          (click)="toggleMobileMenu()"
+          class="p-2 rounded-full hover:bg-muted transition-colors duration-200"
+          [attr.aria-label]="isMenuOpen ? (isRtl ? 'إغلاق القائمة' : 'Close menu') : (isRtl ? 'فتح القائمة' : 'Open menu')"
+        >
+          <svg *ngIf="!isMenuOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+          <svg *ngIf="isMenuOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- القائمة المنسدلة للشاشات الصغيرة -->
+    <div *ngIf="isMenuOpen" class="md:hidden py-4 px-3 border-t border-border/60 bg-card/95 supports-[backdrop-filter]:bg-card/80 backdrop-blur rounded-b-2xl shadow-md">
+      <!-- شريط البحث للشاشات الصغيرة -->
+      <form (ngSubmit)="handleSearch($event)" class="mb-4">
+        <div class="relative group">
+          <input
+            type="text"
+            [placeholder]="'common.search.placeholderShort' | t"
+            name="searchQueryMobile"
+            [(ngModel)]="searchQuery"
+            (keypress)="onKeyPress($event)"
+            class="px-4 py-3 w-full rounded-full focus-visible:ring-2 focus-visible:ring-primary/30 shadow-sm border-gray-200 hover:border-primary/50 focus:border-primary transition-all duration-300 search-input-focus"
+            [class]="isRtl ? 'pl-12 pr-4' : 'pr-12 pl-4'"
+            [dir]="isRtl ? 'rtl' : 'ltr'"
+          />
+          <svg class="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 transition-colors duration-300 group-focus-within:text-primary search-icon-transition"
+               [class]="isRtl ? 'left-4' : 'right-4'"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          
+          <!-- زر البحث - يظهر فقط عند الكتابة -->
+          <button
+            *ngIf="searchQuery.trim()"
+            type="submit"
+            class="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 search-button-animate search-button-hover"
+          >
+            {{ isRtl ? 'بحث' : 'Search' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- عناصر التنقل -->
+      <nav class="grid grid-cols-1 gap-2">
+        <div *ngFor="let item of allNavigationItems" class="rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/50 transition-colors">
+          <div class="flex items-center justify-between">
+            <a
+              [href]="item.href"
+              class="flex items-center gap-3 flex-1 px-4 py-3 text-foreground"
+              (click)="closeMobileMenu()"
+              [dir]="isRtl ? 'rtl' : 'ltr'"
+            >
+              <svg class="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path *ngIf="item.icon === 'Home'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                <path *ngIf="item.icon === 'BookOpen'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                <path *ngIf="item.icon === 'Briefcase'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
+                <path *ngIf="item.icon === 'Users'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+              </svg>
+              <span class="font-medium" [class]="isAdminItem(item) ? 'text-black' : ''">{{ item.name }}</span>
+            </a>
+            <button
+              *ngIf="item.children"
+              aria-label="toggle submenu"
+              class="px-3 py-3 text-muted-foreground"
+              (click)="toggleMobileDropdown(item.name)"
+            >
+              <svg class="h-4 w-4 transition-transform" [class]="openMobileDropdown === item.name ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+          </div>
+          <div *ngIf="item.children" 
+               class="grid overflow-hidden transition-all"
+               [class]="openMobileDropdown === item.name ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'">
+            <div class="min-h-0">
+              <div class="px-4 pb-3 pt-1 space-y-1">
+                <a
+                  *ngFor="let child of item.children"
+                  [href]="child.href"
+                  class="block px-3 py-2 rounded-lg text-sm text-foreground/90 hover:bg-muted"
+                  (click)="closeMobileMenu()"
+                >
+                  {{ child.name }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- أزرار تسجيل الدخول للشاشات الصغيرة -->
+      <div *ngIf="!isAuthenticated; else mobileAuthenticatedSection" class="mt-4 space-y-3">
+        <!-- Home Page Link - يظهر فقط عندما لا يكون مسجل دخول -->
+        <a 
+          href="/" 
+          class="flex items-center gap-3 px-4 py-3 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/50 transition-colors text-foreground"
+          (click)="closeMobileMenu()"
+          [dir]="isRtl ? 'rtl' : 'ltr'"
+        >
+          <svg class="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+          </svg>
+          <span class="font-medium">{{ 'common.nav.home' | t }}</span>
+        </a>
+        
+        <!-- Login Button -->
+        <a href="/login" class="w-full academy-button rounded-full py-2 bg-primary text-white hover:bg-primary/90 transition-colors duration-200 inline-flex items-center justify-center">
+          <svg class="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          {{ 'common.auth.login' | t }}
+        </a>
+      </div>
+
+      <ng-template #mobileAuthenticatedSection>
+        <div class="mt-4">
+          <a href="/profile" class="w-full px-4 py-2 rounded-full text-foreground hover:text-primary hover:bg-muted transition-colors duration-200 inline-flex items-center justify-center">
+            <svg class="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            {{ isRtl ? 'الملف الشخصي' : 'Profile' }}
+          </a>
+        </div>
+      </ng-template>
+
+      <!-- CTA أسفل القائمة -->
+      <div *ngIf="isAuthenticated" class="mt-3">
+        <a href="/courses" class="w-full academy-button rounded-full py-2 bg-primary text-white hover:bg-primary/90 transition-colors duration-200 inline-flex items-center justify-center gap-2">
+          {{ isRtl ? 'ابدأ التعلم' : 'Start Learning' }}
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
