@@ -1,4 +1,4 @@
-<header class="sticky top-0 z-50 supports-[backdrop-filter]:bg-white/50 bg-white/80 backdrop-blur-md border-b border-border/60 shadow-sm">
+<header class="sticky top-0 z-50 supports-[backdrop-filter]:bg-white/50 bg-white/80 backdrop-blur-md border-b border-border/60 shadow-sm" (window:resize)="onResize()">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-16">
       <!-- الشعار -->
@@ -262,7 +262,7 @@
 
       <!-- CTA أسفل القائمة -->
       <div *ngIf="isAuthenticated" class="mt-3">
-        <a href="/courses" class="w-full academy-button rounded-full py-2 bg-primary text-white hover:bg-primary/90 transition-colors duration-200 inline-flex items-center justify-center gap-2">
+        <a href="/catalog" class="w-full academy-button rounded-full py-2 bg-primary text-white hover:bg-primary/90 transition-colors duration-200 inline-flex items-center justify-center gap-2">
           {{ isRtl ? 'ابدأ التعلم' : 'Start Learning' }}
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>

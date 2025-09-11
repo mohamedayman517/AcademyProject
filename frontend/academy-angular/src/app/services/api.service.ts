@@ -1197,4 +1197,21 @@ export class ApiService {
   getComplaintsStudentFile(id: string): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/api/ComplaintsStudent/${id}/file`, { responseType: 'blob' as 'blob' });
   }
+
+  // ===== Convenience aliases used by Evaluations page =====
+  getEvaluations(): Observable<any[]> {
+    return this.getStudentEvaluation();
+  }
+
+  createEvaluation(payload: any): Observable<any> {
+    return this.createStudentEvaluation(payload);
+  }
+
+  getAttendance(): Observable<any[]> {
+    return this.getStudentAttend();
+  }
+
+  getStudents(): Observable<any[]> {
+    return this.getStudentData();
+  }
 }

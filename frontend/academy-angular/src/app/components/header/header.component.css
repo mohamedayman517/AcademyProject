@@ -97,9 +97,7 @@
   display: none;
 }
 
-.md\:flex {
-  display: flex;
-}
+/* Remove default md:flex so it only applies at breakpoint below */
 
 .flex-1 {
   flex: 1 1 0%;
@@ -216,18 +214,8 @@ button[type="submit"]:hover {
   transform: translateY(-50%) scale(1.05);
 }
 
-/* Navigation styles */
-.lg\:flex {
-  display: flex;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.gap-2 {
-  gap: 0.5rem;
-}
+/* Navigation styles (responsive variants are defined under media queries) */
+/* Removed global .lg\:flex to avoid forcing desktop nav visible on mobile */
 
 /* Navigation items */
 .relative {
@@ -431,9 +419,7 @@ svg {
 }
 
 /* Mobile menu */
-.md\:hidden {
-  display: none;
-}
+/* Ensure md:hidden is only applied at breakpoint; do not define globally here */
 
 .gap-1 {
   gap: 0.25rem;
@@ -693,24 +679,22 @@ svg {
 }
 
 @media (min-width: 768px) {
-  .md\:flex {
-    display: flex;
-  }
-  
-  .md\:hidden {
-    display: none;
-  }
+  .md\:flex { display: flex; }
+  .md\:hidden { display: none; }
 }
 
 @media (min-width: 1024px) {
-  .lg\:flex {
-    display: flex;
-  }
+  .lg\:flex { display: flex; }
   
   .lg\:px-8 {
     padding-left: 2rem;
     padding-right: 2rem;
   }
+}
+
+/* Mobile: reduce header height and spacing */
+@media (max-width: 767.98px) {
+  .h-16 { height: 3.25rem; }
 }
 
 /* Animation classes */
@@ -773,3 +757,4 @@ svg {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+

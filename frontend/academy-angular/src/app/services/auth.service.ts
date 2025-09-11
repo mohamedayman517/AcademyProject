@@ -119,6 +119,12 @@ export class AuthService {
   getAcademyId(): string | null { return this._academyId$.getValue(); }
   getBranchId(): string | null { return this._branchId$.getValue(); }
 
+  // Expose decoded user payload minimally for components expecting getUser()
+  getUser(): any | null {
+    const token = this.getToken();
+    return token ? this.decodeJwt(token) : null;
+  }
+
   private extractNameFromPayload(payload: any): string | null {
     if (!payload) return null;
     return (

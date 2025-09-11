@@ -93,6 +93,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    // Ensure body scroll restored if component destroyed while menu open
+    try { document.body.style.overflow = ''; } catch {}
   }
 
   private setupNavigationItems(): void {
@@ -117,7 +119,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Admin navigation items
     if (isAdmin) {
       items.push({
-        name: lang === 'ar' ? 'الدورات والبرامج' : 'Courses & Programs',
+        name: lang === 'ar' ? 'الدورات' : 'Courses',
         href: '/courses',
         icon: 'BookOpen',
         children: [
@@ -292,15 +294,33 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   toggleMobileMenu(): void {
     this.isMenuOpen = !this.isMenuOpen;
+    // Lock body scroll on mobile when menu is open
+    try {
+      if (this.isMenuOpen) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    } catch {}
   }
 
   closeMobileMenu(): void {
     this.isMenuOpen = false;
+    try { document.body.style.overflow = ''; } catch {}
+  }
+
+  // Close mobile menu on viewport resize to desktop to keep desktop unchanged
+  onResize(): void {
+    try {
+      if (window.innerWidth >= 768 && this.isMenuOpen) {
+        this.closeMobileMenu();
+      }
+    } catch {}
   }
 
   isAdminItem(item: NavigationItem): boolean {
     // Check if item is admin-specific
-    const adminItems = ['الدورات والبرامج', 'Courses & Programs', 'الفيديوهات', 'Videos', 'الطلاب', 'Students', 'الخدمات', 'Services', 'المدربين', 'Trainers', 'الوظائف', 'Jobs'];
+    const adminItems = ['الدورات', 'Courses', 'الفيديوهات', 'Videos', 'الطلاب', 'Students', 'الخدمات', 'Services', 'المدربين', 'Trainers', 'الوظائف', 'Jobs'];
     return adminItems.includes(item.name);
   }
 
