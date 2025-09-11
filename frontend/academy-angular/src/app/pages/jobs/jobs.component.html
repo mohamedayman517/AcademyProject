@@ -1,18 +1,325 @@
-<section class="jobs-page" dir="rtl">
-  <div class="container">
-    <div class="page-header">
-      <h1>{{ 'jobs' | t }}</h1>
-      <p>{{ 'manage_job_opportunities' | t }}</p>
+<section class="relative isolate overflow-hidden" [dir]="isRtl ? 'rtl' : 'ltr'">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
+  <div class="absolute -top-20 -left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl hidden md:block"></div>
+  <div class="absolute -bottom-24 -right-24 w-80 h-80 bg-black/10 rounded-full blur-3xl hidden md:block"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 lg:py-28 relative z-10">
+    <!-- العنوان الرئيسي -->
+    <div class="text-center mb-16 animate-fade-in-up">
+      <h1 class="text-4xl lg:text-6xl font-bold text-white mb-6">
+        {{ isRtl ? 'الوظائف' : 'Jobs' }}
+      </h1>
+      <p class="text-xl text-white/90 max-w-3xl mx-auto">
+        {{ isRtl ? 'استكشف أحدث فرص العمل المتاحة' : 'Explore the latest job opportunities' }}
+      </p>
+      <div *ngIf="isAdmin" class="mt-6">
+        <button (click)="openCreateForm()" class="rounded-full academy-button inline-flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          {{ isRtl ? 'إضافة وظيفة' : 'Add Job' }}
+        </button>
+      </div>
     </div>
 
-    <div *ngIf="loading" class="loading">{{ 'loading_plain' | t }}</div>
-    <div *ngIf="error" class="error">{{ error }}</div>
-
-    <div *ngIf="!loading && !error" class="content">
-      <div class="info-card">
-        <h2>{{ 'jobs_management' | t }}</h2>
-        <p>{{ 'jobs_placeholder' | t }}</p>
+    <!-- أقسام الوظائف -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+      <div *ngFor="let category of jobCategories"
+           class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center cursor-pointer hover:bg-white/20 transition-all duration-300"
+           [ngClass]="{ 'ring-2': selectedCategory === category.id, 'ring-white/30': selectedCategory === category.id }"
+           (click)="selectCategory(category.id)">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" [ngClass]="category.color">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-white mb-2">
+          {{ isRtl ? category.nameAr : category.nameEn }}
+        </h3>
+        <p class="text-white/70 text-sm mb-3">
+          <!-- Placeholder description -->
+          {{ isRtl ? 'وصف مختصر للفئة' : 'Short description for the category' }}
+        </p>
+        <div class="inline-block bg-white/20 text-white px-3 py-1 rounded-full text-sm">
+          {{ category.count }} {{ isRtl ? 'وظيفة' : 'jobs' }}
+        </div>
       </div>
+    </div>
+
+    <!-- البحث والفلترة -->
+    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-12">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1 relative">
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input type="text" [placeholder]="isRtl ? 'ابحث عن وظيفة...' : 'Search for a job...'" [(ngModel)]="searchQuery" class="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30" />
+        </div>
+        <button (click)="selectedCategory='all'" class="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105">
+          {{ isRtl ? 'عرض الكل' : 'Show All' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- قائمة الوظائف -->
+    <div class="space-y-6">
+      <ng-container *ngIf="filteredJobs.length > 0; else noJobs">
+        <div *ngFor="let job of filteredJobs" class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 hover:bg-white/15 transition-all duration-300">
+          <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            <div class="flex-1">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                  <h3 class="text-2xl font-bold text-white mb-2">{{ job.jobNameL1 }}</h3>
+                  <p class="text-white/70 mb-4">{{ job.description }}</p>
+                </div>
+                <div class="text-right">
+                  <span class="inline-block bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-medium">#{{ job.jobNo }}</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"></path></svg>
+                  <div>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'الخبرة' : 'Experience' }}</p>
+                    <p class="text-white font-medium">{{ job.experience }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path></svg>
+                  <div>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'المستوى' : 'Level' }}</p>
+                    <p class="text-white font-medium">{{ job.level }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 12 17.657 7.757 16.243 6.343 12 10.586 7.757 6.343 6.343 7.757 10.586 12 6.343 16.243 7.757 17.657 12 13.414 16.243 17.657z"></path></svg>
+                  <div>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'المؤهل' : 'Qualification' }}</p>
+                    <p class="text-white font-medium">{{ job.qualification }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"></path></svg>
+                  <div>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'الفئة' : 'Category' }}</p>
+                    <p class="text-white font-medium">{{ job.jobCategory || job.category }}</p>
+                  </div>
+                </div>
+    </div>
+
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657A8 8 0 118 6.343 8 8 0 0117.657 16.657z"></path></svg>
+                  <div>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'الموقع' : 'Location' }}</p>
+                    <p class="text-white font-medium">{{ job.location }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4 0 2.21 1.79 4 4 4 2.21 0 4-1.79 4-4 0-2.21-1.79-4-4-4z"></path></svg>
+                  <div>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'الراتب' : 'Salary' }}</p>
+                    <p class="text-white font-medium">{{ job.salary }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2"></path></svg>
+                  <div>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'نوع العمل' : 'Job Type' }}</p>
+                    <p class="text-white font-medium">{{ job.type }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                  <div>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'تاريخ النشر' : 'Posted' }}</p>
+                    <p class="text-white font-medium">{{ job.postedDate }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 lg:flex-col">
+              <a [attr.href]="job.jobLink || null" [attr.target]="job.jobLink ? '_blank' : null" rel="noopener noreferrer"
+                 class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 shadow-lg text-center"
+                 [class.opacity-50]="!job.jobLink" [class.pointer-events-none]="!job.jobLink">
+                {{ isRtl ? 'تقدم للوظيفة' : 'Apply' }}
+              </a>
+              <button (click)="openViewDetails(job)" class="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105">
+                {{ isRtl ? 'عرض التفاصيل' : 'View Details' }}
+              </button>
+              <ng-container *ngIf="isAdmin">
+                <button (click)="openEditForm(job)" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105">
+                  {{ isRtl ? 'تعديل' : 'Edit' }}
+                </button>
+                <button (click)="handleDelete(job)" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105">
+                  {{ isRtl ? 'حذف' : 'Delete' }}
+                </button>
+              </ng-container>
+      </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #noJobs>
+        <div class="text-center py-12">
+          <svg class="w-16 h-16 text-white/50 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12l9 4-9 4-9-4 9-4z"></path></svg>
+          <p class="text-white/70 text-lg">{{ isRtl ? 'لا توجد وظائف' : 'No jobs available' }}</p>
+        </div>
+      </ng-template>
     </div>
   </div>
 </section>
+
+<!-- Modal: View / Add / Edit Job -->
+<div *ngIf="isFormOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4">
+  <div class="absolute inset-0 bg-black/60" (click)="closeForm()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6">
+    <div class="mb-4">
+      <h3 class="text-2xl font-bold">{{ viewMode ? (isRtl ? 'تفاصيل الوظيفة' : 'Job Details') : (selectedJob ? (isRtl ? 'تعديل الوظيفة' : 'Edit Job') : (isRtl ? 'إضافة وظيفة جديدة' : 'Add New Job')) }}</h3>
+      <p class="text-gray-600" *ngIf="viewMode">{{ isRtl ? 'عرض تفاصيل الوظيفة' : 'View job details' }}</p>
+      <p class="text-gray-600" *ngIf="!viewMode && selectedJob">{{ isRtl ? 'قم بتعديل بيانات الوظيفة' : 'Enter job information' }}</p>
+      <p class="text-gray-600" *ngIf="!viewMode && !selectedJob">{{ isRtl ? 'أدخل بيانات الوظيفة الجديدة' : 'Enter new job information' }}</p>
+    </div>
+
+    <div *ngIf="viewMode && selectedJob" class="space-y-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div class="text-sm text-gray-500">{{ isRtl ? 'الوظيفة' : 'Job' }}</div>
+          <div class="mt-1">{{ selectedJob.jobNameL1 }}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">{{ isRtl ? 'الوظيفة (EN)' : 'Job (EN)' }}</div>
+          <div class="mt-1">{{ selectedJob.jobNameL2 }}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">{{ isRtl ? 'الفئة' : 'Category' }}</div>
+          <div class="mt-1">{{ selectedJob.jobCategory }}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">{{ isRtl ? 'الموقع' : 'Location' }}</div>
+          <div class="mt-1">{{ selectedJob.location }}</div>
+        </div>
+      </div>
+      <div>
+        <div class="text-sm text-gray-500">{{ isRtl ? 'الوصف' : 'Description' }}</div>
+        <div class="mt-1 whitespace-pre-wrap">{{ selectedJob.description }}</div>
+      </div>
+      <div class="flex justify-end">
+        <button class="px-4 py-2 rounded-md border" (click)="closeForm()">{{ isRtl ? 'إغلاق' : 'Close' }}</button>
+      </div>
+    </div>
+
+    <form *ngIf="!viewMode" (ngSubmit)="submitForm($event)" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'اسم الوظيفة (عربي)*' : 'Job Name (Arabic)*' }}</label>
+          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.JobNameL1" name="JobNameL1" required minlength="2" maxlength="100" placeholder="{{ isRtl ? '' : 'Enter job name in Arabic' }}" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'اسم الوظيفة (إنجليزي)' : 'Job Name (English)' }}</label>
+          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.JobNameL2" name="JobNameL2" maxlength="100" placeholder="{{ isRtl ? '' : 'Enter job name in English' }}" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ isRtl ? 'وصف الوظيفة*' : 'Job Description*' }}</label>
+        <textarea class="w-full border rounded-md px-3 py-2" rows="4" [(ngModel)]="jobForm.Description" name="Description" required maxlength="500" placeholder="{{ isRtl ? 'أدخل وصف الوظيفة' : 'Enter job description' }}"></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'رابط التقديم' : 'Application Link' }}</label>
+          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.JobLink" name="JobLink" placeholder="{{ isRtl ? 'أدخل رابط التقديم' : 'Enter application link' }}" type="url" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'الخبرة المطلوبة' : 'Experience Required' }}</label>
+          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Experience" name="Experience" placeholder="{{ isRtl ? '' : 'Example: 2-4 years' }}" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'المستوى' : 'Level' }}</label>
+          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Level" name="Level" placeholder="{{ isRtl ? '' : 'Example: Junior, Mid, Senior' }}" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'المؤهل المطلوب' : 'Required Qualification' }}</label>
+          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Qualification" name="Qualification" placeholder="{{ isRtl ? '' : 'Enter required qualification' }}" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'فئة الوظيفة' : 'Job Category' }}</label>
+          <select class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.JobCategory" name="JobCategory">
+            <option value="">{{ isRtl ? 'اختر الفئة' : 'Select category' }}</option>
+            <option value="Graphic Designer">Graphic Designer</option>
+            <option value="Network Engineer">Network Engineer</option>
+            <option value="Web Designer">Web Designer</option>
+            <option value="Digital Marketer">Digital Marketer</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'الموقع' : 'Location' }}</label>
+          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Location" name="Location" placeholder="{{ isRtl ? '' : 'Enter job location' }}" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'الراتب' : 'Salary' }}</label>
+          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Salary" name="Salary" placeholder="{{ isRtl ? '' : 'Enter salary range' }}" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'نوع العمل' : 'Job Type' }}</label>
+          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Type" name="Type" placeholder="{{ isRtl ? '' : 'Example: Full-time, Part-time' }}" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'الأكاديمية*' : 'Academy*' }}</label>
+          <select class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.AcademyDataId" name="AcademyDataId" required [disabled]="loadingAcademies">
+            <option value="">{{ isRtl ? 'اختر الأكاديمية' : 'Select Academy' }}</option>
+            <option *ngFor="let a of academies" [value]="a.id">{{ a.academyNameL1 || a.AcademyNameL1 || a.academyNameL2 || a.AcademyNameL2 || a.name || a.id }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'الفرع (اختياري)' : 'Branch (Optional)' }}</label>
+          <select class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.BranchesDataId" name="BranchesDataId" [disabled]="loadingAcademies">
+            <option value="">{{ isRtl ? 'اختر الفرع (اختياري)' : 'Select Branch (Optional)' }}</option>
+            <option *ngFor="let b of branches" [value]="b.id">{{ b.branchNameL1 || b.BranchNameL1 || b.branchNameL2 || b.BranchNameL2 || b.name || b.id }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ isRtl ? 'المتطلبات' : 'Requirements' }}</label>
+        <textarea class="w-full border rounded-md px-3 py-2" rows="4" [(ngModel)]="jobForm.Requirements" name="Requirements" placeholder="{{ isRtl ? 'أدخل المتطلبات (سطر واحد لكل متطلب)' : 'Enter requirements (one per line)' }}"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <div *ngIf="error" class="text-red-600 text-sm mr-auto">{{ error }}</div>
+        <button type="button" class="px-4 py-2 rounded-md border" (click)="closeForm()">{{ isRtl ? 'إلغاء' : 'Cancel' }}</button>
+        <button type="submit" class="px-4 py-2 rounded-md bg-blue-600 text-white" [disabled]="isSubmitting">
+          {{ isSubmitting ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (selectedJob ? (isRtl ? 'تحديث' : 'Update') : (isRtl ? 'إضافة' : 'Add')) }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Dialog -->
+<div *ngIf="showDeleteDialog" class="fixed inset-0 z-50 flex items-center justify-center px-4">
+  <div class="absolute inset-0 bg-black/60" (click)="closeDeleteDialog()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+    <h4 class="text-lg font-semibold mb-2">{{ isRtl ? 'تأكيد الحذف' : 'Confirm Delete' }}</h4>
+    <p class="text-gray-700 mb-4">{{ isRtl ? 'هل أنت متأكد من حذف الوظيفة؟' : 'Are you sure you want to delete this job?' }}</p>
+    <div class="flex justify-end gap-2">
+      <button class="px-4 py-2 rounded-md border" (click)="closeDeleteDialog()">{{ isRtl ? 'إلغاء' : 'Cancel' }}</button>
+      <button class="px-4 py-2 rounded-md bg-red-600 text-white" (click)="confirmDelete()">{{ isRtl ? 'حذف' : 'Delete' }}</button>
+    </div>
+  </div>
+</div>
+

@@ -175,22 +175,34 @@ import { AuthService } from '../../services/auth.service';
 
     .videos-page { 
       padding: 0 0 80px; 
-      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      background: transparent;
       min-height: 100vh;
       position: relative;
       overflow: hidden;
+      isolation: isolate;
     }
 
+    /* Match /jobs animated gradient background */
     .videos-page::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="1" fill="rgba(42, 118, 210, 0.08)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
-      opacity: 0.6;
+      inset: 0;
+      z-index: -2;
+      background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
     }
+
+    /* Dark overlay for contrast */
+    .videos-page::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: rgba(0,0,0,0.55);
+    }
+
+    @keyframes gradient { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
 
     .container { 
       max-width: 1400px; 
@@ -202,7 +214,7 @@ import { AuthService } from '../../services/auth.service';
 
     /* Hero Section */
     .hero-section {
-      background: linear-gradient(135deg, #2a76d2 0%, #4A90E2 100%);
+      background: transparent;
       padding: 80px 0;
       text-align: center;
       color: white;
@@ -210,15 +222,7 @@ import { AuthService } from '../../services/auth.service';
       overflow: hidden;
     }
 
-    .hero-section::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="hero-dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255, 255, 255, 0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23hero-dots)"/></svg>');
-    }
+    .hero-section::before { content: none; }
 
     .hero-content {
       position: relative;
@@ -246,12 +250,12 @@ import { AuthService } from '../../services/auth.service';
       align-items: center; 
       justify-content: space-between; 
       margin: -40px auto 30px;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.10);
       padding: 20px;
       border-radius: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(42, 118, 210, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.20);
     }
 
     .search-box { 
@@ -389,14 +393,15 @@ import { AuthService } from '../../services/auth.service';
 
     .video-card { 
       position: relative; 
-      border: 1px solid rgba(42, 118, 210, 0.1); 
+      border: 1px solid rgba(255, 255, 255, 0.18); 
       border-radius: 20px; 
-      background: #fff; 
+      background: rgba(255, 255, 255, 0.08); 
       overflow: hidden; 
-      box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25); 
       display: grid; 
       grid-template-rows: auto 1fr;
       transition: all 0.3s ease;
+      backdrop-filter: blur(6px);
     }
 
     .video-card:hover {
@@ -506,29 +511,29 @@ import { AuthService } from '../../services/auth.service';
     .title { 
       margin: 0 0 12px; 
       font-size: 18px; 
-      color: var(--text);
-      font-weight: 600;
+      color: #fff;
+      font-weight: 700;
       line-height: 1.4;
     }
 
     .description { 
       margin: 0 0 16px; 
-      color: #2d3748; 
+      color: rgba(255,255,255,0.9); 
       font-size: 16px;
       line-height: 1.7;
-      background: rgba(42, 118, 210, 0.05);
+      background: rgba(255, 255, 255, 0.06);
       padding: 16px 20px;
       border-radius: 12px;
-      border-left: 4px solid rgba(42, 118, 210, 0.3);
+      border-left: 4px solid rgba(255, 255, 255, 0.18);
       font-weight: 600;
-      box-shadow: 0 2px 8px rgba(42, 118, 210, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     .meta { 
       display: flex; 
       align-items: center; 
       gap: 12px; 
-      color: #6b7280; 
+      color: rgba(255,255,255,0.8); 
       font-size: 14px; 
       margin-bottom: 20px;
       flex-wrap: wrap;
@@ -538,25 +543,27 @@ import { AuthService } from '../../services/auth.service';
       display: inline-flex; 
       align-items: center; 
       gap: 6px;
-      background: rgba(42, 118, 210, 0.05);
+      background: rgba(255, 255, 255, 0.10);
       padding: 6px 12px;
       border-radius: 15px;
       font-weight: 500;
+      border: 1px solid rgba(255,255,255,0.15);
     }
 
     .meta-dot { 
       width: 4px; 
       height: 4px; 
       border-radius: 50%; 
-      background: #c8d0d8; 
+      background: rgba(255,255,255,0.3); 
     }
 
     .meta svg { 
-      stroke: var(--primary); 
+      stroke: #fff; 
       fill: none; 
       stroke-width: 2; 
       width: 16px;
       height: 16px;
+      opacity: 0.9;
     }
 
     .watch-btn { 
@@ -856,7 +863,7 @@ import { AuthService } from '../../services/auth.service';
     /* Responsive Design */
     @media (max-width: 768px) {
       .hero-title {
-        font-size: 2.5rem;
+        font-size: 2.25rem;
       }
       
       .toolbar { 
@@ -864,6 +871,20 @@ import { AuthService } from '../../services/auth.service';
         align-items: stretch; 
         gap: 16px;
         margin: -20px auto 30px;
+        padding: 16px;
+      }
+      .search-box input { 
+        padding: 14px 16px; 
+        font-size: 14px;
+      }
+      .search-box .search-btn { 
+        min-width: 120px; 
+        padding: 14px 18px; 
+        font-size: 14px;
+      }
+      .view-toggle button { 
+        width: 40px; 
+        height: 40px; 
       }
       
       .view-toggle { align-self: flex-end; }
@@ -871,12 +892,35 @@ import { AuthService } from '../../services/auth.service';
       
       .videos {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 16px;
       }
       
       .videos.list .video-card { 
         grid-template-columns: 1fr; 
         grid-template-rows: auto 1fr;
+      }
+      .video-thumbnail { 
+        height: 180px; 
+        min-height: 180px; 
+      }
+      .play-button { 
+        width: 64px; 
+        height: 64px; 
+      }
+      .card-body { 
+        padding: 16px; 
+      }
+      .title { 
+        font-size: 16px; 
+        font-weight: 700;
+      }
+      .description { 
+        font-size: 14px; 
+        padding: 12px 14px; 
+      }
+      .watch-btn { 
+        padding: 14px 18px; 
+        font-size: 14px; 
       }
       
       .modal {

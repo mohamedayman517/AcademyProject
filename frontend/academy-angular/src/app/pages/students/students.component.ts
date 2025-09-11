@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, combineLatest, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Component({
@@ -11,14 +11,23 @@ import { map } from 'rxjs/operators';
   templateUrl: './students.component.html',
   styleUrls: ['./students.component.css']
 })
-export class StudentsComponent implements OnInit {
+export class StudentsComponent implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
+  // UI/state
   view: 'grid' | 'list' = 'grid';
-  categories = ['جميع الطلاب','نشط','غير نشط','معلق'];
-  selectedCategory = 'جميع الطلاب';
   query = '';
+
+  // i18n and direction
+  isRtl = false;
+  langCode: 'ar' | 'en' = 'en';
+
+  // data
   students: any[] = [];
+  studentImages: Record<string, string> = {};
+
+  // admin
+  isAdmin = false;
   // pagination
   page = 1;
   pageSize = 12;
@@ -44,23 +53,22 @@ export class StudentsComponent implements OnInit {
     status: 'نشط'
   };
 
+  private subs: Subscription[] = [];
+
   get total(): number { return this.filteredStudents.length; }
   get totalPages(): number { return Math.max(1, Math.ceil(this.total / this.pageSize)); }
 
   get filteredStudents() {
-    let list = [...this.students];
-    if (this.selectedCategory !== 'جميع الطلاب') {
-      list = list.filter(s => (s.status || '').includes(this.selectedCategory));
-    }
-    if (this.query.trim()) {
-      const q = this.query.trim();
-      list = list.filter(s =>
-        (s.name || '').toLowerCase().includes(q.toLowerCase()) ||
-        (s.email || '').toLowerCase().includes(q.toLowerCase()) ||
-        (s.phone || '').includes(q)
-      );
-    }
-    return list;
+    const q = (this.query || '').trim().toLowerCase();
+    if (!q) return this.students;
+    return this.students.filter(s => {
+      const values = [
+        this.getName(s),
+        this.getEmail(s),
+        this.getPhone(s)
+      ].filter(Boolean).map(v => String(v).toLowerCase());
+      return values.some(v => v.includes(q));
+    });
   }
 
   get pagedStudents() {
@@ -81,20 +89,30 @@ export class StudentsComponent implements OnInit {
 
   ngOnInit(): void {
     this.auth.useDevToken();
-    
+    // language/dir
+    try {
+      const code = (localStorage.getItem('lang') || 'en') as 'ar' | 'en';
+      this.langCode = code;
+      this.isRtl = code === 'ar';
+    } catch (_) {}
+
+    // Admin detection like /jobs: react to auth streams
+    const sub = combineLatest([this.auth.isAuthenticated$, this.auth.roles$]).subscribe(([isAuth, roles]) => {
+      const normalized = (roles || []).map(r => String(r).toLowerCase());
+      const isAdminRole = normalized.some(r => ['admin', 'administrator', 'superadmin', 'supportagent'].includes(r));
+      this.isAdmin = !!isAuth && isAdminRole;
+    });
+    this.subs.push(sub);
+
     this.route.queryParams.subscribe(params => {
       this.query = params.q || params.search || '';
-      if (params.category) {
-        const categoryMap: { [key: string]: string } = {
-          'active': 'نشط',
-          'inactive': 'غير نشط',
-          'suspended': 'معلق'
-        };
-        this.selectedCategory = categoryMap[params.category] || 'جميع الطلاب';
-      }
     });
     this.fetchStudents();
     this.loadReferenceData();
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(s => s.unsubscribe());
   }
 
   loadReferenceData(): void {
@@ -128,47 +146,21 @@ export class StudentsComponent implements OnInit {
   fetchStudents(): void {
     this.loading = true;
     this.error = null;
-    
-    // Mock data for students - replace with actual API call
-    this.students = [
-      {
-        id: '1',
-        name: 'أحمد محمد علي',
-        email: 'ahmed@example.com',
-        phone: '01234567890',
-        academyId: '1',
-        branchId: '1',
-        status: 'نشط',
-        joinDate: '2024-01-15',
-        lastLogin: '2024-01-20'
+    this.api.getStudents().subscribe({
+      next: async (res) => {
+        const list = Array.isArray(res) ? res : [];
+        this.students = list;
+        this.page = 1;
+        await this.loadStudentImages(this.students);
+        this.loading = false;
       },
-      {
-        id: '2',
-        name: 'فاطمة أحمد حسن',
-        email: 'fatima@example.com',
-        phone: '01234567891',
-        academyId: '1',
-        branchId: '2',
-        status: 'نشط',
-        joinDate: '2024-01-10',
-        lastLogin: '2024-01-19'
-      },
-      {
-        id: '3',
-        name: 'محمد سعد الدين',
-        email: 'mohamed@example.com',
-        phone: '01234567892',
-        academyId: '2',
-        branchId: '1',
-        status: 'غير نشط',
-        joinDate: '2023-12-20',
-        lastLogin: '2024-01-05'
+      error: (err) => {
+        console.error('Error loading students', err);
+        this.error = this.isRtl ? 'حدث خطأ أثناء تحميل الطلاب' : 'Failed to load students';
+        this.students = [];
+        this.loading = false;
       }
-    ];
-    
-    console.log(`Students loaded: ${this.students.length}`, this.students);
-    this.loading = false;
-    this.page = 1;
+    });
   }
 
   getAcademyName(academyId: string): string {
@@ -282,23 +274,29 @@ export class StudentsComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    // Mock add student - replace with actual API call
-    const newStudent = {
-      id: Date.now().toString(),
-      name: `${this.newStudent.firstName.trim()} ${this.newStudent.lastName.trim()}`,
-      email: this.newStudent.email.trim(),
-      phone: this.newStudent.phone.trim(),
-      academyId: this.newStudent.academyId,
-      branchId: this.newStudent.branchId,
-      status: this.newStudent.status,
-      joinDate: new Date().toISOString().split('T')[0],
-      lastLogin: null
+    const payload: any = {
+      FirstName: this.newStudent.firstName.trim(),
+      LastName: this.newStudent.lastName.trim(),
+      Email: this.newStudent.email.trim(),
+      PhoneNumber: this.newStudent.phone.trim(),
+      AcademyDataId: this.newStudent.academyId,
+      BranchDataId: this.newStudent.branchId,
+      Status: this.newStudent.status
     };
 
-    this.students.unshift(newStudent);
-    this.showAddForm = false;
-    this.resetForm();
-    this.loading = false;
+    this.api.createStudentData(payload).subscribe({
+      next: () => {
+        this.showAddForm = false;
+        this.resetForm();
+        this.fetchStudents();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error creating student', err);
+        this.error = this.isRtl ? 'تعذر إضافة الطالب' : 'Failed to add student';
+        this.loading = false;
+      }
+    });
   }
 
   updateStudent() {
@@ -320,41 +318,52 @@ export class StudentsComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    // Mock update student - replace with actual API call
-    const studentIndex = this.students.findIndex(s => s.id === this.editingStudent.id);
-    if (studentIndex !== -1) {
-      this.students[studentIndex] = {
-        ...this.students[studentIndex],
-        name: `${this.newStudent.firstName.trim()} ${this.newStudent.lastName.trim()}`,
-        email: this.newStudent.email.trim(),
-        phone: this.newStudent.phone.trim(),
-        academyId: this.newStudent.academyId,
-        branchId: this.newStudent.branchId,
-        status: this.newStudent.status
-      };
-    }
+    const payload: any = {
+      FirstName: this.newStudent.firstName.trim(),
+      LastName: this.newStudent.lastName.trim(),
+      Email: this.newStudent.email.trim(),
+      PhoneNumber: this.newStudent.phone.trim(),
+      AcademyDataId: this.newStudent.academyId,
+      BranchDataId: this.newStudent.branchId,
+      Status: this.newStudent.status
+    };
 
-    this.showEditForm = false;
-    this.editingStudent = null;
-    this.resetForm();
-    this.loading = false;
+    this.api.updateStudentData(this.editingStudent.id || this.editingStudent.Id, payload).subscribe({
+      next: () => {
+        this.showEditForm = false;
+        this.editingStudent = null;
+        this.resetForm();
+        this.fetchStudents();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error updating student', err);
+        this.error = this.isRtl ? 'تعذر تعديل بيانات الطالب' : 'Failed to update student';
+        this.loading = false;
+      }
+    });
   }
 
   deleteStudent(student: any) {
-    if (!confirm('هل أنت متأكد من حذف هذا الطالب؟')) {
+    if (!confirm(this.isRtl ? 'هل أنت متأكد من حذف هذا الطالب؟' : 'Are you sure you want to delete this student?')) {
       return;
     }
 
     this.loading = true;
     this.error = null;
 
-    // Mock delete student - replace with actual API call
-    const studentIndex = this.students.findIndex(s => s.id === student.id);
-    if (studentIndex !== -1) {
-      this.students.splice(studentIndex, 1);
-    }
-
-    this.loading = false;
+    const id = student.id || student.Id;
+    this.api.deleteStudentData(String(id)).subscribe({
+      next: () => {
+        this.students = this.students.filter(s => (s.id || s.Id) !== id);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error deleting student', err);
+        this.error = this.isRtl ? 'تعذر حذف الطالب' : 'Failed to delete student';
+        this.loading = false;
+      }
+    });
   }
 
   cancelForm() {
@@ -364,4 +373,49 @@ export class StudentsComponent implements OnInit {
     this.resetForm();
     this.error = null;
   }
+
+  // Helpers to align with React StudentsPage.jsx
+  getName(s: any): string {
+    const first = s.firstName || s.FirstName || '';
+    const last = s.lastName || s.LastName || '';
+    const full = s.fullName || s.studentNameL1 || s.StudentNameL1 || s.studentNameL2 || s.StudentNameL2 || `${first} ${last}`.trim();
+    return full || (this.langCode === 'ar' ? 'طالب' : 'Student');
+  }
+
+  getEmail(s: any): string { return s.email || s.Email || ''; }
+  getPhone(s: any): string { return s.phoneNumber || s.PhoneNumber || s.studentPhone || s.StudentPhone || s.phone || ''; }
+  isActive(s: any): boolean {
+    if (typeof s.active === 'boolean') return s.active;
+    if (typeof s.Active === 'boolean') return s.Active;
+    return (s.status || '').includes('نشط');
+  }
+  getId(s: any): string { return s.id || s.Id || s.guid || s.Guid || this.getName(s); }
+  getImageUrl(s: any): string | undefined {
+    const accountId = this.accountIdForImage(s);
+    return accountId ? this.studentImages[accountId] : undefined;
+  }
+
+  accountIdForImage(s: any): string {
+    const candidate = s.userId || s.UserId || s.id || s.Id || '';
+    const str = String(candidate);
+    const guidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    return guidRegex.test(str) ? str : '';
+  }
+
+  async loadStudentImages(studentsList: any[]): Promise<void> {
+    const images: Record<string, string> = {};
+    for (const student of studentsList) {
+      const accountId = this.accountIdForImage(student);
+      if (!accountId) continue;
+      try {
+        const blob = await this.api.accountGetProfilePicture(accountId).toPromise();
+        if (blob && (blob as any).size > 0) {
+          const url = URL.createObjectURL(blob as any);
+          images[accountId] = url;
+        }
+      } catch (_) {}
+    }
+    this.studentImages = images;
+  }
 }
+

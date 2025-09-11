@@ -18,10 +18,29 @@ export class CoursesComponent implements OnInit {
   categories = ['جميع الدورات','التكنولوجيا','الأعمال','التصميم','اللغات','تطوير الذات'];
   selectedCategory = 'جميع الدورات';
   query = '';
+  debouncedQuery = '';
   courses: any[] = [];
+  // New datasets for Catalog-style tabs
+  projectMasters: any[] = [];
+  projectDetails: any[] = [];
+  programDetails: any[] = [];
+  // Local defaults to render UI when unauthorized
+  private defaultProjectMasters: any[] = [
+    { id: 'pm-1', ProjectNameL1: 'مشروع تجريبي', Description: 'وصف مشروع تجريبي' },
+    { id: 'pm-2', ProjectNameL1: 'Sample Project', Description: 'Sample project description' }
+  ];
+  private defaultProjectDetails: any[] = [
+    { id: 'pd-1', ProjectNameL1: 'تفصيل تجريبي', Description: 'وصف تفصيلي تجريبي', ProjectsMasterId: 'pm-1' }
+  ];
+  private defaultPrograms: any[] = [
+    { id: 'program-1', SessionNameL1: 'برنامج المهارات الشخصية', Description: 'برنامج شامل لتطوير المهارات الشخصية والمهنية', SessionNo: 1 },
+    { id: 'program-2', SessionNameL1: 'Web Development Program', Description: 'Comprehensive program for modern web application development', SessionNo: 2 }
+  ];
   // pagination
   page = 1;
   pageSize = 12;
+  // Active tab (Catalog-style)
+  activeTab: 'projectMasters' | 'projectDetails' | 'programDetails' = 'projectMasters';
   
   // Admin functionality
   isAdmin$: Observable<boolean>;
@@ -85,6 +104,7 @@ export class CoursesComponent implements OnInit {
     
     this.route.queryParams.subscribe(params => {
       this.query = params.q || params.search || '';
+      this.debouncedQuery = this.query;
       if (params.category) {
         // Map category from English to Arabic
         const categoryMap: { [key: string]: string } = {
@@ -97,6 +117,9 @@ export class CoursesComponent implements OnInit {
         this.selectedCategory = categoryMap[params.category] || 'جميع الدورات';
       }
     });
+    // Load datasets for Catalog-style view
+    this.loadCatalogData();
+    // Keep legacy courses loader for backward compatibility
     this.fetchCourses();
     this.loadReferenceData();
     
@@ -136,7 +159,74 @@ export class CoursesComponent implements OnInit {
       queryParamsHandling: 'merge'
     });
     this.page = 1;
+    // simple debounce mimic for filtering
+    setTimeout(() => { this.debouncedQuery = q; }, 250);
   }
+
+  // Load datasets matching React CatalogPage (Projects Master/Detail and Programs)
+  private loadCatalogData(): void {
+    // Projects Master
+    this.api.getProjectsMaster().subscribe({
+      next: (res) => {
+        const data = Array.isArray(res) ? res : (res?.items || res?.data || []);
+        this.projectMasters = data && data.length ? data : this.defaultProjectMasters;
+      },
+      error: () => { this.projectMasters = this.defaultProjectMasters; }
+    });
+    // Projects Detail
+    this.api.getProjectsDetail().subscribe({
+      next: (res) => {
+        const data = Array.isArray(res) ? res : (res?.items || res?.data || []);
+        this.projectDetails = data && data.length ? data : this.defaultProjectDetails;
+      },
+      error: () => { this.projectDetails = this.defaultProjectDetails; }
+    });
+    // Programs (ProgramsContentMaster)
+    this.api.getProgramsContentMaster().subscribe({
+      next: (res) => {
+        const data = Array.isArray(res) ? res : (res?.items || res?.data || []);
+        this.programDetails = data && data.length ? data : this.defaultPrograms;
+      },
+      error: () => { this.programDetails = this.defaultPrograms; }
+    });
+  }
+
+  // Catalog-style filtering helpers
+  private includesQuery(value: any, q: string): boolean {
+    if (!value) return false;
+    try { return String(value).toLowerCase().includes(q); } catch { return false; }
+  }
+
+  get filteredProjectMasters(): any[] {
+    const q = (this.debouncedQuery || '').toLowerCase();
+    if (!q) return this.projectMasters;
+    return (this.projectMasters || []).filter(pm => {
+      const values = [pm.ProjectNameL1, pm.projectNameL1, pm.ProjectNameL2, pm.projectNameL2, pm.Description, pm.description, pm.id, pm.Id].filter(Boolean);
+      return values.some(v => this.includesQuery(v, q));
+    });
+  }
+
+  get filteredProjectDetails(): any[] {
+    const q = (this.debouncedQuery || '').toLowerCase();
+    if (!q) return this.projectDetails;
+    return (this.projectDetails || []).filter(pd => {
+      const values = [pd.ProjectNameL1, pd.projectNameL1, pd.ProjectNameL2, pd.projectNameL2, pd.Description, pd.description, pd.ProjectsMasterId, pd.projectsMasterId, pd.id, pd.Id].filter(Boolean);
+      return values.some(v => this.includesQuery(v, q));
+    });
+  }
+
+  get filteredProgramDetails(): any[] {
+    const q = (this.debouncedQuery || '').toLowerCase();
+    if (!q) return this.programDetails;
+    return (this.programDetails || []).filter(pr => {
+      const values = [pr.SessionNameL1, pr.sessionNameL1, pr.SessionNameL2, pr.sessionNameL2, pr.Description, pr.description, pr.SessionNo?.toString?.(), pr.id, pr.Id].filter(Boolean);
+      return values.some(v => this.includesQuery(v, q));
+    });
+  }
+
+  get pmCount(): number { return this.filteredProjectMasters.length; }
+  get pdCount(): number { return this.filteredProjectDetails.length; }
+  get prCount(): number { return this.filteredProgramDetails.length; }
 
   loadReferenceData(): void {
     console.log('Loading reference data...');

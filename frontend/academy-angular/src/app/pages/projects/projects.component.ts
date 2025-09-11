@@ -49,6 +49,7 @@ export class ProjectsComponent implements OnInit {
   error = false;
   projects: ProjectCard[] = [];
   isAdmin = false;
+  usingDefaultData = false;
   
   // Form states
   showForm = false;
@@ -76,6 +77,13 @@ export class ProjectsComponent implements OnInit {
     ProjectFile: null, // File upload
     Description: ''
   };
+
+  // Default projects for fallback rendering when API is unauthorized/empty
+  private defaultProjects: any[] = [
+    { id: '1', projectNameL1: 'مشروع تطوير تطبيق الويب', projectNameL2: 'Web Application Development Project', projectStart: '2024-01-15', projectEnd: '2024-06-30', description: 'تطوير تطبيق ويب متكامل باستخدام Angular و Node.js' },
+    { id: '2', projectNameL1: 'مشروع تطوير تطبيق الهاتف المحمول', projectNameL2: 'Mobile App Development Project', projectStart: '2024-03-01', projectEnd: '2024-08-15', description: 'تطوير تطبيق iOS و Android باستخدام Ionic/Capacitor' },
+    { id: '3', projectNameL1: 'مشروع قاعدة البيانات', projectNameL2: 'Database Project', projectStart: '2024-02-01', projectEnd: '2024-05-30', description: 'تصميم وتطوير قاعدة بيانات متقدمة باستخدام MySQL' }
+  ];
 
   constructor(
     private api: ApiService, 
@@ -170,9 +178,28 @@ export class ProjectsComponent implements OnInit {
           return;
         }
       },
-      error: () => { this.error = true; },
+      error: (err) => {
+        if (err && (err.status === 401 || err.status === 403)) {
+          // Use defaults to render UI similar to React page
+          this.projects = this.defaultProjects.map((p: any) => ({
+            id: p.id,
+            title: p.projectNameL1,
+            description: p.description,
+            level: 'متوسط'
+          }));
+          this.usingDefaultData = true;
+          this.error = false;
+        } else {
+          this.error = true;
+        }
+      },
       complete: () => { this.loading = false; }
     });
+  }
+
+  startProject(p: ProjectCard): void {
+    const id = p.id || p.projectId;
+    if (id) this.router.navigate(['/project-details', id]);
   }
 
   onPreview(p: ProjectCard): void {

@@ -49,8 +49,8 @@ const DICT: Record<string, { ar: string; en: string }> = {
   arabic: { ar: 'العربية', en: 'Arabic' },
   english: { ar: 'الإنجليزية', en: 'English' },
   // Home hero
-  hero_title_line1: { ar: 'تعلم بذكاء، وابدأ', en: 'Learn Smart, and Start' },
-  hero_title_line2: { ar: 'مسيرتك المهنية الآن', en: 'Your Career Now' },
+  hero_title_line1: { ar: 'تعلم بذكاء، وابدأ', en: 'Learn smarter, start' },
+  hero_title_line2: { ar: 'مسيرتك المهنية الآن', en: 'your career now' },
   hero_desc: { ar: 'دورات وبرامج مجانية عالية الجودة مع شهادات معتمدة ومحتوى عملي مركز.', en: 'Free, high-quality courses and programs with accredited certificates and focused practical content.' },
   hero_cta_start: { ar: 'ابدأ الآن مجاناً', en: 'Start Free Now' },
   hero_cta_browse: { ar: 'تصفح الدورات', en: 'Browse Courses' },

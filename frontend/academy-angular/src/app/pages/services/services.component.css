@@ -1,16 +1,9 @@
-.services { padding: 4rem 0; }
-.container { max-width: 80rem; margin: 0 auto; padding: 0 1rem; }
-.title { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--foreground); }
-.subtitle { color: var(--muted-foreground); margin-bottom: 2rem; }
-.grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 1rem; }
-.card { background: var(--card); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem; }
-.card-title { font-weight: 600; margin: 0.5rem 0; color: var(--foreground); }
-.card-desc { color: var(--muted-foreground); }
-.icon { font-size: 1.5rem; }
-
-@media (min-width: 640px) {
-  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (min-width: 1024px) {
-  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
+/* Utility styles to support the CertificatesPage-like layout */
+/* Use global animated gradient (same as Trainers) by removing local override */
+.text-primary { color: #60a5fa; }
+.bg-primary { background-color: #3b82f6; }
+.bg-primary\/20 { background-color: rgba(59,130,246,0.2); }
+.btn-primary { background:#3b82f6; color:#fff; padding:.75rem 2rem; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; transition:.2s; border:1px solid rgba(255,255,255,.2); }
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-secondary { background:transparent; color:#fff; padding:.75rem 2rem; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; transition:.2s; border:1px solid rgba(255,255,255,.3); }
+.btn-secondary:hover { background: rgba(255,255,255,.1); }

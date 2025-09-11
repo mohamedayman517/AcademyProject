@@ -1,18 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
+import { combineLatest, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-programs',
   templateUrl: './programs.component.html',
   styleUrls: ['./programs.component.css']
 })
-export class ProgramsComponent implements OnInit {
+export class ProgramsComponent implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
   programs: any[] = [];
   showAddForm = false;
   editingProgram: any = null;
   programMasters: any[] = [];
+  isAdmin = false;
+  private subs: Subscription[] = [];
   newProgram = {
     programNameL1: '',
     programNameL2: '',
@@ -22,11 +26,21 @@ export class ProgramsComponent implements OnInit {
     programMasterId: ''
   };
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private auth: AuthService) {}
 
   ngOnInit(): void {
+    const s = combineLatest([this.auth.isAuthenticated$, this.auth.roles$]).subscribe(([isAuth, roles]) => {
+      const normalized = (roles || []).map(r => String(r).toLowerCase());
+      const isAdminRole = normalized.some(r => ['admin', 'administrator', 'superadmin', 'supportagent'].includes(r));
+      this.isAdmin = !!isAuth && isAdminRole;
+    });
+    this.subs.push(s);
     this.fetchPrograms();
     this.fetchProgramMasters();
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(s => s.unsubscribe());
   }
 
   private fetchPrograms(): void {

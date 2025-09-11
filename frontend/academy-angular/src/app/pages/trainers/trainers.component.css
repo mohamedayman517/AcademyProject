@@ -68,3 +68,12 @@
   margin-bottom: 1.5rem;
   line-height: 1.6;
 }
+
+/* Utility to clamp long text to two lines */
+.truncate-2-lines {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+

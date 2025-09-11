@@ -1,0 +1,102 @@
+<section class="relative isolate overflow-hidden" [dir]="isRtl ? 'rtl' : 'ltr'">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 relative z-10">
+    <div class="flex items-center justify-between mb-8">
+      <button (click)="goBack()" class="text-white hover:bg-white/10 px-4 py-2 rounded-full border border-white/20 inline-flex items-center gap-2">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        {{ isRtl ? 'العودة للمدربين' : 'Back to Trainers' }}
+      </button>
+      <h1 class="text-2xl font-bold text-white">{{ isRtl ? 'تعديل المدرب' : 'Edit Trainer' }}</h1>
+      <div></div>
+    </div>
+
+    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-white">
+      <p class="opacity-90">{{ isRtl ? 'تحرير بيانات المدرب كما في API' : 'Edit trainer data as per API' }}</p>
+      <p class="mt-2 opacity-80">ID: {{ trainerId }}</p>
+      <div class="mt-4" *ngIf="loading">{{ isRtl ? 'جاري التحميل...' : 'Loading...' }}</div>
+      <div class="mt-4 text-red-300" *ngIf="!loading && error">{{ error }}</div>
+      <div class="mt-4 text-emerald-300" *ngIf="!loading && success">{{ isRtl ? 'تم الحفظ بنجاح' : 'Saved successfully' }}</div>
+
+      <form class="grid grid-cols-1 gap-4 mt-4" *ngIf="!loading" (ngSubmit)="save()">
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'الاسم (عربي)' : 'Name (L1)' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherNameL1" name="TeacherNameL1" required />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'الاسم (إنجليزي)' : 'Name (L2)' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherNameL2" name="TeacherNameL2" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'العنوان' : 'Address' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherAddress" name="TeacherAddress" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'الهوية' : 'National ID' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.NationalId" name="NationalId" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'تاريخ البدء' : 'Start Date' }}</label>
+          <input type="date" class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.DateStart" name="DateStart" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'الجوال' : 'Mobile' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherMobile" name="TeacherMobile" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'الهاتف' : 'Phone' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherPhone" name="TeacherPhone" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'واتساب' : 'Whatsapp' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherWhatsapp" name="TeacherWhatsapp" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'البريد الإلكتروني' : 'Email' }}</label>
+          <input type="email" class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherEmail" name="TeacherEmail" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'الوصف' : 'Description' }}</label>
+          <textarea rows="3" class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.Description" name="Description"></textarea>
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'تاريخ الإلغاء' : 'Cancel Date' }}</label>
+          <input type="date" class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherCancel" name="TeacherCancel" />
+        </div>
+
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'الأكاديمية' : 'Academy' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.AcademyDataId" name="AcademyDataId" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'الفرع' : 'Branch' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.BranchesDataId" name="BranchesDataId" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'الدولة' : 'Country' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.CountryCodeId" name="CountryCodeId" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'المحافظة' : 'Governorate' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.GovernorateCodeId" name="GovernorateCodeId" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'المدينة' : 'City' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.CityCodeId" name="CityCodeId" />
+        </div>
+
+        <div class="grid gap-2">
+          <label class="opacity-90">{{ isRtl ? 'صورة' : 'Image' }}</label>
+          <input type="file" accept="image/*" (change)="onFileChange($event)" class="rounded-lg px-3 py-2 text-black bg-white" />
+          <img *ngIf="imagePreviewUrl" [src]="imagePreviewUrl" class="mt-2 max-h-40 rounded-lg border border-white/20" />
+        </div>
+
+        <div class="mt-4">
+          <button class="px-4 py-2 rounded-full bg-white/90 text-black hover:bg-white" type="submit" [disabled]="saving">{{ isRtl ? 'حفظ' : 'Save' }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+

@@ -1,9 +1,4 @@
-/* Sessions Page Styles */
-.sessions-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 2rem 0;
-}
+/* Keep modal and form styles (used by new layout) */
 
 /* Toolbar */
 .toolbar {
@@ -410,6 +405,36 @@
   padding: 1rem;
 }
 
+/* Calendar styling */
+.calendar-container{
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 16px;
+  padding: 16px;
+}
+.calendar-header{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px;text-align:center;color:rgba(255,255,255,0.8);font-size:12px
+}
+.calendar-header-cell{padding:6px 4px}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.calendar-day{
+  min-height:90px;border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:6px;display:flex;flex-direction:column;background:rgba(255,255,255,0.05);transition:background .2s, transform .2s, border-color .2s;cursor:pointer
+}
+.calendar-day:hover{background:rgba(255,255,255,0.1);transform:translateY(-1px);border-color:rgba(255,255,255,0.35)}
+.calendar-day.outside{opacity:.6}
+.calendar-day.today{outline:2px solid rgba(59,130,246,0.6);outline-offset:2px}
+.calendar-day-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.calendar-day-number{font-size:12px;color:#fff;font-weight:600}
+.calendar-day-body{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:4px}
+.calendar-badge{font-size:10px;line-height:1;padding:4px 6px;border-radius:6px;background:rgba(59,130,246,0.25);color:#cfe1ff;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-weight:600}
+.calendar-more{font-size:10px;color:rgba(255,255,255,0.75);font-weight:600}
+
+@media (max-width:768px){
+  .calendar-day{min-height:72px}
+  .calendar-header{font-size:11px}
+}
+
 .modal {
   background: white;
   border-radius: 1rem;
@@ -570,3 +595,4 @@
     width: 100%;
   }
 }
+

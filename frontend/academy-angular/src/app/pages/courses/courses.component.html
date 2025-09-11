@@ -1,206 +1,119 @@
-<section class="courses-page" dir="rtl">
-  <!-- Toolbar: search + view toggle + admin controls -->
-  <div class="toolbar container">
-    <div class="search-box">
-      <input type="text" [(ngModel)]="query" (keydown.enter)="onSearch()" [placeholder]="'search_courses' | t" [attr.aria-label]="('search' | t)"/>
-      <button class="search-btn" type="button" (click)="onSearch()">{{ 'search' | t }}</button>
-    </div>
-    
-    <!-- Admin Controls -->
-    <div class="admin-controls" *ngIf="isAdmin$ | async">
-      <button class="add-course-btn" (click)="showAddCourseForm()">
-        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5v14M5 12h14"/></svg>
-        {{ 'add_new_program' | t }}
-      </button>
-    </div>
-    
-    <div class="view-toggle" role="group" [attr.aria-label]="('search' | t)">
-      <button [class.active]="view==='grid'" (click)="view='grid'" [attr.aria-label]="('view_grid' | t)">
-        <!-- grid icon -->
-        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/></svg>
-      </button>
-      <button [class.active]="view==='list'" (click)="view='list'" [attr.aria-label]="('view_list' | t)">
-        <!-- list icon -->
-        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-    </div>
-  </div>
+<section class="relative isolate overflow-hidden">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
 
-  <!-- Categories Chips -->
-  <div class="chips container">
-    <button
-      *ngFor="let cat of categories"
-      class="chip"
-      [class.active]="selectedCategory===cat"
-      (click)="selectedCategory=cat"
-    >{{ cat }}</button>
-  </div>
-
-  <div *ngIf="loading" class="container loading">{{ 'loading_plain' | t }}</div>
-  <div *ngIf="error" class="container error">{{ error }}</div>
-
-  <!-- No Courses Message -->
-  <div *ngIf="!loading && !error && courses.length === 0" class="container no-courses">
-    <div class="no-courses-content">
-      <div class="no-courses-icon">📚</div>
-      <h3>{{ 'no_courses_title' | t }}</h3>
-      <p>{{ 'no_courses_desc' | t }}</p>
-      <button class="refresh-btn" (click)="fetchCourses()">{{ 'refresh_page' | t }}</button>
-    </div>
-  </div>
-
-  <!-- Cards Grid -->
-  <div class="cards container" [class.list]="view==='list'" *ngIf="!loading && !error && courses.length > 0">
-    <article class="course-card" *ngFor="let c of pagedCourses">
-      <div class="badge" [attr.data-level]="c.level">{{ c.level }}</div>
-      <div class="card-media">
-        <img [src]="getCourseImage(c)" alt="{{ c.title }}" loading="lazy" (error)="$event.target.src='assets/images/course_placeholder-DE1r9TwW.png'"/>
-        <div class="play-icon">
-          <svg viewBox="0 0 24 24" width="26" height="26"><path d="M8 5v14l11-7z"/></svg>
-        </div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 lg:py-28 relative z-10" dir="rtl">
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between mb-6">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white">
+        {{ 'catalog_title' | t : 'الكاتالوج' }}
+      </h1>
+      <div class="flex items-center gap-2">
+        <a routerLink="/sessions" class="academy-button rounded-full">
+          {{ 'session_calendar' | t : 'تقويم الجلسات' }}
+        </a>
       </div>
-      <div class="card-body">
-        <h3 class="title">{{ c.title }}</h3>
-        <p class="desc">{{ c.description }}</p>
-        <div class="meta">
-          <span class="item">
-            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 7v6l4 2"/></svg>
-            {{ c.durationWeeks }} {{ 'weeks' | t }}
-          </span>
-          <span class="dot"></span>
-          <span class="item">
-            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M16 11c1.7 0 3-1.8 3-4s-1.3-4-3-4-3 1.8-3 4 1.3 4 3 4zm-8 0c1.7 0 3-1.8 3-4S9.7 3 8 3 5 4.8 5 7s1.3 4 3 4zm0 2c-2.8 0-5 2.2-5 5v1h10v-1c0-2.8-2.2-5-5-5z"/></svg>
-            {{ c.students | number }} {{ 'students_lbl' | t }}
-          </span>
-          <span class="dot"></span>
-          <span class="item">
-            <svg viewBox="0 0 24 24" width="18" height="18"><path d="m12 17.3 5.5 3.2-1.4-6.1 4.7-4.1-6.2-.5L12 4l-2.6 5.8-6.2.5 4.7 4.1-1.4 6.1z"/></svg>
-            {{ c.rating }}
-          </span>
+    </div>
+
+    <div class="glass p-4 sm:p-6 mb-6">
+      <div class="relative">
+        <input
+          type="text"
+          [placeholder]="('search_catalog' | t) || 'ابحث في الكاتالوج...'"
+          [(ngModel)]="query"
+          (keydown.enter)="onSearch()"
+          class="search-input"
+          dir="rtl"
+        />
+        <button type="button" class="clear-btn" *ngIf="query" (click)="query=''; onSearch()">×</button>
+      </div>
+    </div>
+
+    <div class="glass p-4 sm:p-6">
+      <div class="tabs-list">
+        <button class="tab" [class.active]="activeTab==='projectMasters'" (click)="activeTab='projectMasters'">
+          Project Master <span *ngIf="debouncedQuery">({{ pmCount }})</span>
+        </button>
+        <button class="tab" [class.active]="activeTab==='projectDetails'" (click)="activeTab='projectDetails'">
+          Project Details <span *ngIf="debouncedQuery">({{ pdCount }})</span>
+        </button>
+        <button class="tab" [class.active]="activeTab==='programDetails'" (click)="activeTab='programDetails'">
+          Program Details <span *ngIf="debouncedQuery">({{ prCount }})</span>
+        </button>
+      </div>
+
+      <div class="mt-6" *ngIf="activeTab==='projectMasters'">
+        <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="skeleton-card animate-pulse" *ngFor="let i of [0,1,2,3,4,5]"></div>
         </div>
-        
-        <!-- معلومات إضافية -->
-        <div class="course-info" *ngIf="c.programsContentMasterId || c.academyClaseTypeId">
-          <div class="info-item" *ngIf="c.programsContentMasterId">
-            <strong>{{ 'main_program' | t }}</strong> {{ getProgramsContentMasterName(c.programsContentMasterId) }}
-          </div>
-          <div class="info-item" *ngIf="c.academyClaseTypeId">
-            <strong>{{ 'course_type' | t }}</strong> {{ getClaseTypeName(c.academyClaseTypeId) }}
-          </div>
-          <div class="info-item" *ngIf="c.claseNumber">
-            <strong>{{ 'course_number' | t }}</strong> {{ c.claseNumber }}
-          </div>
+        <div *ngIf="!loading && filteredProjectMasters.length === 0" class="text-center text-white/80 py-16">
+          {{ 'no_project_masters' | t : 'لا توجد مشاريع' }}
         </div>
-        <div class="card-actions">
-          <button class="cta" routerLink="/register">{{ 'start_learning' | t }}</button>
-          
-          <!-- Admin Actions -->
-          <div class="admin-actions" *ngIf="isAdmin$ | async">
-            <button class="edit-btn" (click)="showEditCourseForm(c)" [title]="'edit_course' | t">
-              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="delete-btn" (click)="deleteProgram(c)" [title]="'delete_program' | t">
-              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-            </button>
+        <div *ngIf="!loading && filteredProjectMasters.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="catalog-card hoverable" *ngFor="let pm of filteredProjectMasters">
+            <div class="media with-gradient"></div>
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1">
+                <div class="card-title">{{ pm.projectNameL1 || pm.ProjectNameL1 || 'Project' }}</div>
+                <div class="card-subtitle">{{ pm.description || pm.Description }}</div>
+              </div>
+            </div>
+            <div class="mt-4 flex items-center justify-end">
+              <a [routerLink]="['/project-details', pm.id || pm.Id]" class="btn-xs inline-flex items-center gap-1">
+                {{ 'view_details' | t : 'عرض التفاصيل' }}
+              </a>
+            </div>
           </div>
         </div>
       </div>
-    </article>
-  </div>
 
-  <!-- Pagination Controls -->
-  <div class="container" *ngIf="!loading && !error && total > pageSize" style="display:flex;gap:8px;justify-content:center;align-items:center;margin:16px 0;">
-    <button (click)="prevPage()" [disabled]="page<=1">{{ 'prev' | t }}</button>
-    <span>{{ ('page_of' | t).replace('{{page}}', page) .replace('{{total}}', totalPages) }}</span>
-    <button (click)="nextPage()" [disabled]="page>=totalPages">{{ 'next' | t }}</button>
-  </div>
+      <div class="mt-6" *ngIf="activeTab==='projectDetails'">
+        <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="skeleton-card animate-pulse" *ngFor="let i of [0,1,2,3,4,5]"></div>
+        </div>
+        <div *ngIf="!loading && filteredProjectDetails.length === 0" class="text-center text-white/80 py-16">
+          {{ 'no_project_details' | t : 'لا توجد تفاصيل مشاريع' }}
+        </div>
+        <div *ngIf="!loading && filteredProjectDetails.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="catalog-card hoverable" *ngFor="let pd of filteredProjectDetails">
+            <div class="media with-gradient"></div>
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1">
+                <div class="card-title">{{ pd.projectNameL1 || pd.ProjectNameL1 || 'Project Detail' }}</div>
+                <div class="card-subtitle">{{ pd.description || pd.Description }}</div>
+              </div>
+            </div>
+            <div class="mt-4 flex items-center justify-end">
+              <a [routerLink]="['/project-details', pd.ProjectsMasterId || pd.projectsMasterId || pd.id]" class="btn-xs inline-flex items-center gap-1">
+                {{ 'view_details' | t : 'عرض التفاصيل' }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <!-- Add New Program Modal -->
-  <div class="modal-overlay" *ngIf="showAddForm" (click)="cancelForm()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ 'add_program_modal_title' | t }}</h3>
-        <button class="close-btn" (click)="cancelForm()">×</button>
-      </div>
-      <div class="modal-body">
-        <form (ngSubmit)="addProgram()">
-          <div class="form-group">
-            <label for="programsContentMasterId">{{ 'choose_main_program_req' | t }}</label>
-            <select id="programsContentMasterId" [(ngModel)]="newProgram.programsContentMasterId" name="programsContentMasterId" required>
-              <option value="">{{ 'choose_main_program_opt' | t }} ({{ programsContentMaster.length }})</option>
-              <option *ngFor="let master of programsContentMaster" [value]="master.id || master.Id">
-                {{ master.sessionNameL1 || master.SessionNameL1 || master.title || master.Title || 'برنامج غير معروف' }}
-              </option>
-            </select>
-            <small *ngIf="programsContentMaster.length === 0" style="color: black;">{{ 'no_main_programs' | t }}</small>
+      <div class="mt-6" *ngIf="activeTab==='programDetails'">
+        <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="skeleton-card animate-pulse" *ngFor="let i of [0,1,2,3,4,5]"></div>
+        </div>
+        <div *ngIf="!loading && filteredProgramDetails.length === 0" class="text-center text-white/80 py-16">
+          {{ 'no_program_details' | t : 'لا توجد تفاصيل برامج' }}
+        </div>
+        <div *ngIf="!loading && filteredProgramDetails.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="catalog-card hoverable" *ngFor="let pr of filteredProgramDetails">
+            <div class="media with-gradient"></div>
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1">
+                <div class="card-title">{{ pr.SessionNameL1 || pr.sessionNameL1 || 'Program' }}</div>
+                <div class="card-subtitle">{{ pr.Description || pr.description }}</div>
+              </div>
+            </div>
+            <div class="mt-4 flex items-center justify-end">
+              <a [routerLink]="['/program-details', pr.id || pr.Id]" class="btn-xs inline-flex items-center gap-1">
+                {{ 'view_details' | t : 'عرض التفاصيل' }}
+              </a>
+            </div>
           </div>
-          
-          <div class="form-group">
-            <label for="programNameL1">{{ 'name_ar_3_70' | t }}</label>
-            <input type="text" id="programNameL1" [(ngModel)]="newProgram.programNameL1" name="programNameL1" required minlength="3" maxlength="70">
-            <small>{{ 'must_be_3_70' | t }}</small>
-          </div>
-          
-          <div class="form-group">
-            <label for="programNameL2">{{ 'name_en_optional' | t }}</label>
-            <input type="text" id="programNameL2" [(ngModel)]="newProgram.programNameL2" name="programNameL2">
-          </div>
-          
-          <div class="form-group">
-            <label for="programDescription">{{ 'desc_optional' | t }}</label>
-            <textarea id="programDescription" [(ngModel)]="newProgram.programDescription" name="programDescription" rows="4"></textarea>
-          </div>
-          
-          <div class="form-actions">
-            <button type="button" class="cancel-btn" (click)="cancelForm()">{{ 'cancel_btn' | t }}</button>
-            <button type="submit" class="submit-btn" [disabled]="loading">{{ 'submit_add_program' | t }}</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Edit Program Modal -->
-  <div class="modal-overlay" *ngIf="showEditForm" (click)="cancelForm()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ 'edit_program_title' | t }}</h3>
-        <button class="close-btn" (click)="cancelForm()">×</button>
-      </div>
-      <div class="modal-body">
-        <form (ngSubmit)="updateProgram()">
-          <div class="form-group">
-            <label for="edit-programsContentMasterId">{{ 'choose_main_program_req' | t }}</label>
-            <select id="edit-programsContentMasterId" [(ngModel)]="newProgram.programsContentMasterId" name="edit-programsContentMasterId" required>
-              <option value="">{{ 'choose_main_program_opt' | t }} ({{ programsContentMaster.length }})</option>
-              <option *ngFor="let master of programsContentMaster" [value]="master.id || master.Id">
-                {{ master.sessionNameL1 || master.SessionNameL1 || master.title || master.Title || 'برنامج غير معروف' }}
-              </option>
-            </select>
-            <small *ngIf="programsContentMaster.length === 0" style="color: black;">{{ 'no_main_programs' | t }}</small>
-          </div>
-          
-          <div class="form-group">
-            <label for="edit-programNameL1">{{ 'name_ar_3_70' | t }}</label>
-            <input type="text" id="edit-programNameL1" [(ngModel)]="newProgram.programNameL1" name="edit-programNameL1" required minlength="3" maxlength="70">
-            <small>{{ 'must_be_3_70' | t }}</small>
-          </div>
-          
-          <div class="form-group">
-            <label for="edit-programNameL2">{{ 'name_en_optional' | t }}</label>
-            <input type="text" id="edit-programNameL2" [(ngModel)]="newProgram.programNameL2" name="edit-programNameL2">
-          </div>
-          
-          <div class="form-group">
-            <label for="edit-programDescription">{{ 'desc_optional' | t }}</label>
-            <textarea id="edit-programDescription" [(ngModel)]="newProgram.programDescription" name="edit-programDescription" rows="4"></textarea>
-          </div>
-          
-          <div class="form-actions">
-            <button type="button" class="cancel-btn" (click)="cancelForm()">{{ 'cancel_btn' | t }}</button>
-            <button type="submit" class="submit-btn" [disabled]="loading">{{ 'save_changes_btn' | t }}</button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>

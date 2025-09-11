@@ -1,24 +1,60 @@
-<section class="projects-page container" dir="rtl">
-  <header class="page-header">
-    <h2 class="title">{{ 'featured_projects_title' | t }}</h2>
-    <p class="subtitle">{{ 'featured_projects_subtitle' | t }}</p>
-    <div class="header-actions">
-      <button class="btn btn-primary" (click)="addProject()">
-        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
-        {{ 'add_project' | t }}
-      </button>
-      
-      <div class="debug-info">
-        <strong>معلومات التصحيح:</strong><br>
-        isAdmin: {{ isAdmin }} | showForm: {{ showForm }}<br>
-        Auth Status: {{ auth.isAuthenticated$ | async }}<br>
-        Roles: {{ auth.roles$ | async | json }}
+<section class="relative isolate overflow-hidden" dir="rtl">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 lg:py-28 relative z-10">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white">Project Master</h1>
+      <button *ngIf="isAdmin" class="academy-button rounded-full" (click)="addProject()">إضافة مشروع رئيسي</button>
+    </div>
+    <div *ngIf="usingDefaultData" class="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-white">
+      ⚠️ عرض بيانات افتراضية - لا توجد بيانات متاحة من الخادم
+    </div>
+
+    <div *ngIf="loading" class="text-center text-white py-10">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      {{ 'loading_plain' | t }}
+    </div>
+    <div *ngIf="error && !loading" class="text-center text-white py-10">
+      {{ 'fetch_projects_error' | t }}
+    </div>
+
+    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 sm:p-6" *ngIf="!loading">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-white projects-table">
+          <thead>
+            <tr class="text-right text-white/80">
+              <th class="p-2">Name (AR)</th>
+              <th class="p-2">Name (EN)</th>
+              <th class="p-2">Start</th>
+              <th class="p-2">End</th>
+              <th class="p-2">Description</th>
+              <th class="p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of projects" class="border-t border-white/10">
+              <td class="p-2">{{ r.projectNameL1 || r.title }}</td>
+              <td class="p-2">{{ r.projectNameL2 || '' }}</td>
+              <td class="p-2">{{ r.projectStart || '' }}</td>
+              <td class="p-2">{{ r.projectEnd || '' }}</td>
+              <td class="p-2 description-cell">{{ r.description }}</td>
+              <td class="p-2 actions-cell">
+                <div class="flex gap-2 actions-group">
+                  <button class="btn-xs bg-green-600 hover:bg-green-700 text-white" (click)="startProject(r)">ابدأ المشروع</button>
+                  <ng-container *ngIf="isAdmin">
+                    <button class="btn-xs" (click)="editProject(r)">تعديل</button>
+                    <button class="btn-xs" (click)="deleteProject(r)">حذف</button>
+                  </ng-container>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="!projects.length">
+              <td class="p-4 text-center text-white/70" colspan="6">لا توجد مشاريع.</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
-  </header>
-
-  <div *ngIf="loading" class="loading">{{ 'loading' | t }}</div>
-  <div *ngIf="error" class="error">{{ 'fetch_projects_error' | t }}</div>
 
   <!-- Add/Edit Project Form Modal -->
   <div class="modal-overlay" *ngIf="showForm" (click)="cancelForm()">
@@ -159,5 +195,6 @@
         </div>
       </div>
     </article>
+  </div>
   </div>
 </section>

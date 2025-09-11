@@ -1,136 +1,94 @@
-<section class="programs-page" dir="rtl">
-  <div class="container">
-    <div class="page-header">
-      <h2 class="page-title">{{ 'programs_nav' | t }}</h2>
-      <p class="page-description">{{ 'programs_desc' | t }}</p>
-      <div class="header-actions">
-        <button class="btn btn-primary" (click)="addProgram()">
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
-          </svg>
-          {{ 'add_new_program' | t }}
-        </button>
+<section class="relative isolate overflow-hidden" dir="rtl">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 lg:py-28 relative z-10">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white">{{ 'programs_nav' | t }}</h1>
+      <button *ngIf="isAdmin" class="academy-button rounded-full" (click)="addProgram()">{{ 'add_new_program' | t }}</button>
+    </div>
+
+    <div *ngIf="loading" class="text-center text-white py-10">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      {{ 'loading_plain' | t }}
+    </div>
+    <div *ngIf="error && !loading" class="text-center text-white py-10">
+      {{ error }}
+    </div>
+
+    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 sm:p-6" *ngIf="!loading">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-white programs-table">
+          <thead>
+            <tr class="text-right text-white/80">
+              <th class="p-2">{{ 'name_ar' | t:'الاسم (ع)' }}</th>
+              <th class="p-2">{{ 'name_en' | t:'الاسم (EN)' }}</th>
+              <th class="p-2">{{ 'desc' | t:'الوصف' }}</th>
+              <th class="p-2">{{ 'actions' | t:'الإجراءات' }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of programs" class="border-t border-white/10">
+              <td class="p-2">{{ p?.title || p?.programNameL1 || p?.name }}</td>
+              <td class="p-2">{{ p?.programNameL2 || '' }}</td>
+              <td class="p-2 description-cell">{{ p?.description || '' }}</td>
+              <td class="p-2 actions-cell">
+                <div class="flex gap-2 actions-group">
+                  <button class="btn-xs bg-green-600 hover:bg-green-700 text-white">{{ 'view_details' | t:'عرض' }}</button>
+                  <ng-container *ngIf="isAdmin">
+                    <button class="btn-xs" (click)="editProgram(p)">{{ 'edit' | t:'تعديل' }}</button>
+                    <button class="btn-xs" (click)="deleteProgram(p)">{{ 'delete' | t:'حذف' }}</button>
+                  </ng-container>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="!programs.length">
+              <td class="p-4 text-center text-white/70" colspan="4">{{ 'no_programs' | t:'لا توجد برامج.' }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <div *ngIf="loading" class="loading-state">
-      <div class="loading-spinner"></div>
-      <p>{{ 'loading_plain' | t }}</p>
-    </div>
-    
-    <div *ngIf="error" class="error-state">
-      <div class="error-icon">⚠️</div>
-      <p>{{ error }}</p>
-    </div>
-
-    <!-- Add/Edit Program Form -->
-    <div *ngIf="showAddForm" class="program-form-container">
-      <div class="program-form">
-        <div class="form-header">
-          <h3>{{ 'program_form_title' | t }}</h3>
+    <!-- Modal: Add/Edit Program -->
+    <div class="modal-overlay" *ngIf="showAddForm" (click)="cancelForm()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ editingProgram ? ('edit_program_title' | t) : ('add_new_program' | t) }}</h3>
           <button class="close-btn" (click)="cancelForm()">×</button>
         </div>
-        <form (ngSubmit)="saveProgram()" #programForm="ngForm">
-          <div class="form-group">
-            <label for="programMaster">{{ 'choose_main_program_req' | t }}</label>
-            <select
-              id="programMaster"
-              name="programMaster"
-              [(ngModel)]="newProgram.programMasterId"
-              class="form-control"
-              required>
-              <option value="">{{ 'choose_main_program_opt' | t }}</option>
-              <option *ngFor="let m of programMasters" [value]="m.id">{{ m.title }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="programNameL1">{{ 'name_ar_3_70' | t }}</label>
-            <input 
-              type="text" 
-              id="programNameL1" 
-              name="programNameL1" 
-              [(ngModel)]="newProgram.programNameL1"
-              required
-              minlength="3"
-              maxlength="70"
-              class="form-control"
-              [placeholder]="'project_name_ar_ph' | t">
-          </div>
-          
-          <div class="form-group">
-            <label for="programNameL2">{{ 'name_en_optional' | t }}</label>
-            <input 
-              type="text" 
-              id="programNameL2" 
-              name="programNameL2" 
-              [(ngModel)]="newProgram.programNameL2" 
-              class="form-control"
-              [placeholder]="'project_name_en_ph' | t">
-          </div>
-          
-          <div class="form-group">
-            <label for="description">{{ 'desc_optional' | t }}</label>
-            <textarea 
-              id="description" 
-              name="description" 
-              [(ngModel)]="newProgram.description" 
-              class="form-control"
-              rows="4"
-              [placeholder]="'program_desc_ph' | t"></textarea>
-          </div>
-          
-          
-          
-          <div class="form-actions">
-            <button type="button" class="btn btn-secondary" (click)="cancelForm()">{{ 'cancel_btn' | t }}</button>
-            <button type="submit" class="btn btn-primary" [disabled]="!programForm.form.valid || loading">
-              {{ loading ? ('saving' | t) : ('save_changes_btn' | t) }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div class="modal-body">
+          <form (ngSubmit)="saveProgram()" #programForm="ngForm">
+            <div class="form-group">
+              <label for="programMaster">{{ 'choose_main_program_req' | t }}</label>
+              <select id="programMaster" name="programMaster" [(ngModel)]="newProgram.programMasterId" required>
+                <option value="">{{ 'choose_main_program_opt' | t }}</option>
+                <option *ngFor="let m of programMasters" [value]="m.id">{{ m.title }}</option>
+              </select>
+            </div>
 
-    <div class="programs-grid" *ngIf="!loading && !error">
-      <div class="program-card" *ngFor="let p of programs">
-        <div class="card-image">
-          <img [src]="p?.imageUrl || 'assets/images/program_placeholder-BXZ7ZM7h.png'" [alt]="p?.title || p?.name || ('program' | t)" class="program-image">
-          <div class="card-overlay">
-            <button class="view-btn">{{ 'view_details' | t }}</button>
-          </div>
-        </div>
-        <div class="card-content">
-          <h3 class="program-title">{{ p?.title || p?.name || ('program' | t) }}</h3>
-          <p class="program-description">{{ p?.description || p?.desc || ('no_description' | t) }}</p>
-          <div class="program-meta">
-            <span class="meta-item">
-              <svg viewBox="0 0 24 24" width="16" height="16">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
-              </svg>
-              {{ p?.level || ('specialized_program' | t) }}
-            </span>
-            <span class="meta-item">
-              <svg viewBox="0 0 24 24" width="16" height="16">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
-              </svg>
-              {{ 'certified' | t }}
-            </span>
-          </div>
-          <div class="card-actions">
-            <button class="edit-btn" (click)="editProgram(p)" [title]="'edit_program_title' | t">
-              <svg viewBox="0 0 24 24" width="16" height="16">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            </button>
-            <button class="delete-btn" (click)="deleteProgram(p)" [title]="'delete_program' | t">
-              <svg viewBox="0 0 24 24" width="16" height="16">
-                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/>
-                <line x1="10" y1="11" x2="10" y2="17"/>
-                <line x1="14" y1="11" x2="14" y2="17"/>
-              </svg>
-            </button>
-          </div>
+            <div class="form-group">
+              <label for="programNameL1">{{ 'name_ar_3_70' | t }}</label>
+              <input type="text" id="programNameL1" name="programNameL1" [(ngModel)]="newProgram.programNameL1" required minlength="3" maxlength="70">
+            </div>
+
+            <div class="form-group">
+              <label for="programNameL2">{{ 'name_en_optional' | t }}</label>
+              <input type="text" id="programNameL2" name="programNameL2" [(ngModel)]="newProgram.programNameL2">
+            </div>
+
+            <div class="form-group">
+              <label for="description">{{ 'desc_optional' | t }}</label>
+              <textarea id="description" name="description" rows="4" [(ngModel)]="newProgram.description"></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="cancel-btn" (click)="cancelForm()">{{ 'cancel_btn' | t }}</button>
+              <button type="submit" class="submit-btn" [disabled]="!programForm.form.valid || loading">
+                {{ loading ? ('saving' | t) : ('save_changes_btn' | t) }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

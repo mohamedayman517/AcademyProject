@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
-import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -14,59 +13,44 @@ import { map } from 'rxjs/operators';
 export class SessionsComponent implements OnInit {
   loading = false;
   error: string | null = null;
-  view: 'grid' | 'list' = 'grid';
-  categories = ['جميع الجلسات','التكنولوجيا','الأعمال','التصميم','اللغات','تطوير الذات'];
-  selectedCategory = 'جميع الجلسات';
-  query = '';
-  sessions: any[] = [];
-  // pagination
-  page = 1;
-  pageSize = 12;
-  
-  // Admin functionality
+  usingDefaultData = false;
+
+  // Calendar state
+  currentMonth = new Date();
+  selectedDate: Date | null = null;
+  today: Date = new Date();
+
+  // Projects data mapped for calendar display
+  projects: Array<{
+    id: any;
+    title: string;
+    description: string;
+    date: Date | null;
+    startDate?: string | null;
+    endDate?: string | null;
+  }> = [];
+
+  // Admin and dialog state
   isAdmin$: Observable<boolean>;
-  showAddForm = false;
-  showEditForm = false;
-  editingSession: any = null;
-  
-  // Reference data
-  academies: any[] = [];
-  branches: any[] = [];
-  programsContentMaster: any[] = [];
-  
-  // Form data
-  newSession = {
-    programsContentMasterId: '',
-    sessionNameL1: '',
-    sessionNameL2: '',
-    sessionDescription: '',
-    sessionNo: 0
+  isFormOpen = false;
+  isSubmitting = false;
+  selectedProject: any = null;
+  formModel: { ProjectNameL1: string; ProjectNameL2?: string; Description?: string; ProjectStart: string; ProjectEnd?: string } = {
+    ProjectNameL1: '',
+    ProjectNameL2: '',
+    Description: '',
+    ProjectStart: '',
+    ProjectEnd: ''
   };
 
-  get total(): number { return this.filteredSessions.length; }
-  get totalPages(): number { return Math.max(1, Math.ceil(this.total / this.pageSize)); }
+  // Persisted map of projectId -> chosen date
+  projectDatesMap: Record<string, string> = {};
 
-  get filteredSessions() {
-    let list = [...this.sessions];
-    if (this.selectedCategory !== 'جميع الجلسات') {
-      list = list.filter(s => (s.category || '').includes(this.selectedCategory));
-    }
-    if (this.query.trim()) {
-      const q = this.query.trim();
-      list = list.filter(s =>
-        (s.title || '').toLowerCase().includes(q.toLowerCase()) ||
-        (s.description || '').toLowerCase().includes(q.toLowerCase())
-      );
-    }
-    return list;
-  }
+  // URL filters
+  academyId: string | null = null;
+  branchId: string | null = null;
 
-  get pagedSessions() {
-    const start = (this.page - 1) * this.pageSize;
-    return this.filteredSessions.slice(start, start + this.pageSize);
-  }
-
-  constructor(private api: ApiService, private router: Router, private route: ActivatedRoute, private auth: AuthService) {
+  constructor(private api: ApiService, private route: ActivatedRoute, private auth: AuthService) {
     this.isAdmin$ = this.auth.roles$.pipe(
       map(roles => {
         const roleArray = roles || [];
@@ -79,357 +63,174 @@ export class SessionsComponent implements OnInit {
 
   ngOnInit(): void {
     this.auth.useDevToken();
-    
+
+    // Restore persisted map
+    try {
+      const raw = localStorage.getItem('projectDatesMap');
+      this.projectDatesMap = raw ? JSON.parse(raw) : {};
+    } catch { this.projectDatesMap = {}; }
+
+    // Read URL filters
     this.route.queryParams.subscribe(params => {
-      this.query = params.q || params.search || '';
-      if (params.category) {
-        const categoryMap: { [key: string]: string } = {
-          'tech': 'التكنولوجيا',
-          'business': 'الأعمال',
-          'design': 'التصميم',
-          'language': 'اللغات',
-          'skills': 'تطوير الذات'
-        };
-        this.selectedCategory = categoryMap[params.category] || 'جميع الجلسات';
-      }
-    });
-    this.fetchSessions();
-    this.loadReferenceData();
-  }
-
-  loadReferenceData(): void {
-    console.log('Loading reference data...');
-    
-    this.api.getProgramsContentMaster().subscribe({
-      next: (data) => {
-        console.log('ProgramsContentMaster API response:', data);
-        this.programsContentMaster = Array.isArray(data) ? data : (data?.items || data?.data || []);
-        console.log('ProgramsContentMaster loaded:', this.programsContentMaster.length);
-      },
-      error: (err) => {
-        console.error('Error loading ProgramsContentMaster:', err);
-        this.programsContentMaster = [];
-      }
-    });
-    
-    this.api.getAcademyData().subscribe({
-      next: (data) => {
-        console.log('Academies API response:', data);
-        this.academies = Array.isArray(data) ? data : (data?.items || data?.data || []);
-        console.log('Academies loaded:', this.academies.length);
-      },
-      error: (err) => {
-        console.error('Error loading academies:', err);
-        this.academies = [];
-      }
-    });
-
-    this.api.getBranchesData().subscribe({
-      next: (data) => {
-        console.log('Branches API response:', data);
-        this.branches = Array.isArray(data) ? data : (data?.items || data?.data || []);
-        console.log('Branches loaded:', this.branches.length);
-      },
-      error: (err) => {
-        console.error('Error loading branches:', err);
-        this.branches = [];
-      }
+      this.academyId = params['academy'] || null;
+      this.branchId = params['branch'] || null;
+      this.fetchProjects();
     });
   }
 
-  fetchSessions(): void {
-    this.loading = true;
-    this.error = null;
-    
-    // Use ProgramsContentMaster as sessions data
-    this.api.getProgramsContentMaster().subscribe({
-      next: (data) => {
-        console.log('Sessions API response:', data);
-        const dataArr = Array.isArray(data) ? data : (data?.items || data?.data || []);
-        
-        this.sessions = dataArr.map((item: any) => ({
-          id: item.id || item.Id || item.masterId || item.uid,
-          title: item.sessionNameL1 || item.SessionNameL1 || 'جلسة بدون عنوان',
-          description: item.description || item.Description || '',
-          durationWeeks: 0,
-          students: 0,
-          price: 0,
-          rating: 0,
-          level: 'غير محدد',
-          category: 'جلسات',
-          imageUrl: item.imageUrl || item.ImageUrl || null,
-          academyId: item.academyDataId || item.AcademyDataId || null,
-          branchId: item.branchCodeId || item.BranchCodeId || null,
-          programsContentMasterId: item.id || item.Id || item.masterId || item.uid,
-          sessionNameL2: item.sessionNameL2 || item.SessionNameL2 || '',
-          sessionNo: item.sessionNo || item.SessionNo || 0
-        }));
-        
-        console.log(`Sessions loaded: ${this.sessions.length}`, this.sessions);
-        this.loading = false;
-        this.page = 1;
-      },
-      error: (err) => {
-        console.error('Error loading sessions:', err);
-        this.error = 'فشل في تحميل الجلسات';
-        this.loading = false;
-      }
-    });
-  }
+  // ==== Calendar helpers ====
+  goPrev(): void { this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1); }
+  goNext(): void { this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1); }
 
-  getSessionImage(session: any): string {
-    if (session?.imageUrl) return session.imageUrl;
-    
-    const id = session?.id || session?.Id;
-    if (id) {
-      return `${environment.apiBaseUrl}/api/ProgramsContentMaster/${id}/image`;
+  private extractDate(row: any): Date | null {
+    const candidates = [row.date, row.sessionDate, row.startDate, row.ProjectStart, row.projectStart, row.createdAt, row.updatedAt].filter(Boolean);
+    for (const c of candidates) {
+      const d = new Date(c);
+      if (!isNaN(d as unknown as number)) return d;
     }
-    
-    return 'assets/images/program_placeholder-BXZ7ZM7h.png';
+    return null;
   }
 
-  getAcademyName(academyId: string): string {
-    if (!academyId || !this.academies || this.academies.length === 0) {
-      return 'أكاديمية غير معروفة';
-    }
-    
-    const academy = this.academies.find(a => 
-      a.id === academyId || 
-      a.Id === academyId || 
-      String(a.id) === String(academyId) || 
-      String(a.Id) === String(academyId)
-    );
-    
-    if (academy) {
-      return academy.claseNameL1 || academy.ClaseNameL1 || academy.academyNameL1 || academy.AcademyNameL1 || academy.name || academy.Name || 'أكاديمية غير معروفة';
-    }
-    
-    return 'أكاديمية غير معروفة';
+  private persistProjectDate(projectId: any, dateStr: string) {
+    if (!projectId || !dateStr) return;
+    const key = String(projectId);
+    this.projectDatesMap[key] = dateStr;
+    try { localStorage.setItem('projectDatesMap', JSON.stringify(this.projectDatesMap)); } catch {}
   }
 
-  getBranchName(branchId: string): string {
-    if (!branchId || !this.branches || this.branches.length === 0) {
-      return 'فرع غير معروف';
-    }
-    
-    const branch = this.branches.find(b => 
-      b.id === branchId || 
-      b.Id === branchId || 
-      String(b.id) === String(branchId) || 
-      String(b.Id) === String(branchId)
-    );
-    
-    if (branch) {
-      return branch.branchNameL1 || branch.BranchNameL1 || branch.name || branch.Name || 'فرع غير معروف';
-    }
-    
-    return 'فرع غير معروف';
-  }
-
-  getProgramsContentMasterName(masterId: string): string {
-    if (!masterId || !this.programsContentMaster || this.programsContentMaster.length === 0) {
-      return 'برنامج غير معروف';
-    }
-    
-    const master = this.programsContentMaster.find(m => 
-      m.id === masterId || 
-      m.Id === masterId || 
-      String(m.id) === String(masterId) || 
-      String(m.Id) === String(masterId)
-    );
-    
-    if (master) {
-      return master.sessionNameL1 || master.SessionNameL1 || master.title || master.Title || 'برنامج غير معروف';
-    }
-    
-    return 'برنامج غير معروف';
-  }
-
-  onSearch(): void {
-    const q = (this.query || '').trim();
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { q: q || null },
-      queryParamsHandling: 'merge'
-    });
-    this.page = 1;
-  }
-
-  nextPage() {
-    if (this.page < this.totalPages) this.page += 1;
-  }
-
-  prevPage() {
-    if (this.page > 1) this.page -= 1;
-  }
-
-  // Admin functions
-  showAddSessionForm() {
-    this.showAddForm = true;
-    this.showEditForm = false;
-    this.resetForm();
-    this.loadReferenceData();
-  }
-
-  showEditSessionForm(session: any) {
-    this.editingSession = session;
-    this.showEditForm = true;
-    this.showAddForm = false;
-    this.loadReferenceData();
-    this.newSession = {
-      programsContentMasterId: session.programsContentMasterId || '',
-      sessionNameL1: session.title || '',
-      sessionNameL2: session.sessionNameL2 || '',
-      sessionDescription: session.description || '',
-      sessionNo: session.sessionNo || 0
-    };
-  }
-
-  resetForm() {
-    this.newSession = {
-      programsContentMasterId: '',
-      sessionNameL1: '',
-      sessionNameL2: '',
-      sessionDescription: '',
-      sessionNo: 0
-    };
-  }
-
-  addSession() {
-    if (!this.newSession.sessionNameL1.trim()) {
-      this.error = 'يرجى إدخال اسم الجلسة بالعربية';
-      return;
-    }
-
-    if (this.newSession.sessionNameL1.trim().length < 3 || this.newSession.sessionNameL1.trim().length > 70) {
-      this.error = 'اسم الجلسة بالعربية يجب أن يكون بين 3 و 70 حرف';
-      return;
-    }
-
+  // ==== Data loading (Projects Master) ====
+  fetchProjects(): void {
     this.loading = true;
     this.error = null;
 
-    const masterPayload: any = {
-      SessionNameL1: this.newSession.sessionNameL1.trim(),
-      SessionNameL2: this.newSession.sessionNameL2.trim() || undefined,
-      Description: this.newSession.sessionDescription.trim() || undefined,
-      SessionNo: this.newSession.sessionNo || 0
-    };
+    this.api.getProjectsMaster().subscribe({
+      next: (data) => {
+        const rows = Array.isArray(data) ? data : (data?.items || data?.data || []);
 
-    this.api.createProgramsContentMaster(masterPayload).subscribe({
-      next: (response) => {
-        console.log('Session created successfully:', response);
-        this.showAddForm = false;
-        this.resetForm();
-        this.fetchSessions();
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error adding session:', err);
-        if (err.status === 400) {
-          this.error = 'بيانات الجلسة غير صحيحة. يرجى التحقق من جميع الحقول المطلوبة.';
-        } else if (err.status === 401) {
-          this.error = 'غير مخول لإضافة جلسات. يرجى تسجيل الدخول كمدير.';
-        } else if (err.status === 403) {
-          this.error = 'ليس لديك صلاحية لإضافة جلسات.';
-        } else if (err.status === 500) {
-          this.error = 'خطأ في الخادم. يرجى المحاولة لاحقاً.';
-        } else {
-          this.error = `حدث خطأ أثناء إضافة الجلسة: ${err.statusText || 'خطأ غير معروف'}`;
+        // Optional filtering by academy/branch from URL
+        let filtered = rows;
+        if (this.academyId || this.branchId) {
+          filtered = rows.filter((p: any) => {
+            const academy = p.academyDataId || p.AcademyDataId || p.academyId || p.AcademyId;
+            const branch = p.branchesDataId || p.BranchesDataId || p.branchId || p.BranchId;
+            const okA = this.academyId ? String(academy) === String(this.academyId) : true;
+            const okB = this.branchId ? String(branch) === String(this.branchId) : true;
+            return okA && okB;
+          });
         }
-        this.loading = false;
-      }
-    });
-  }
 
-  updateSession() {
-    if (!this.newSession.sessionNameL1.trim()) {
-      this.error = 'يرجى إدخال اسم الجلسة بالعربية';
-      return;
-    }
-
-    if (this.newSession.sessionNameL1.trim().length < 3 || this.newSession.sessionNameL1.trim().length > 70) {
-      this.error = 'اسم الجلسة بالعربية يجب أن يكون بين 3 و 70 حرف';
-      return;
-    }
-
-    this.loading = true;
-    this.error = null;
-
-    const cleaned: any = {
-      SessionNameL1: this.newSession.sessionNameL1.trim(),
-      SessionNo: this.newSession.sessionNo || 0
-    };
-    if (this.newSession.sessionNameL2 && this.newSession.sessionNameL2.trim()) {
-      cleaned.SessionNameL2 = this.newSession.sessionNameL2.trim();
-    }
-    if (this.newSession.sessionDescription && this.newSession.sessionDescription.trim()) {
-      cleaned.Description = this.newSession.sessionDescription.trim();
-    }
-
-    const targetId = this.editingSession.programsContentMasterId || this.editingSession.id;
-
-    this.api.updateProgramsContentMaster(targetId, cleaned).subscribe({
-      next: (response) => {
-        console.log('Session updated successfully:', response);
-        this.showEditForm = false;
-        this.editingSession = null;
-        this.resetForm();
-        this.fetchSessions();
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error updating session:', err);
-        if (err.status === 400) {
-          this.error = 'بيانات الجلسة غير صحيحة. يرجى التحقق من جميع الحقول المطلوبة.';
-        } else if (err.status === 401) {
-          this.error = 'غير مخول لتحديث الجلسات. يرجى تسجيل الدخول كمدير.';
-        } else if (err.status === 403) {
-          this.error = 'ليس لديك صلاحية لتحديث الجلسات.';
-        } else if (err.status === 404) {
-          this.error = 'الجلسة غير موجودة.';
-        } else if (err.status === 500) {
-          this.error = 'خطأ في الخادم. يرجى المحاولة لاحقاً.';
+        if (!filtered.length) {
+          // Fallback demo data (20 projects like React page)
+          const now = new Date();
+          const demo: any[] = [];
+          for (let i = 0; i < 20; i++) {
+            const start = new Date(now);
+            start.setDate(now.getDate() + (i * 7));
+            const end = new Date(start);
+            end.setDate(start.getDate() + 14);
+            demo.push({
+              id: i + 1,
+              ProjectNameL1: 'مشروع',
+              ProjectNameL2: 'Project',
+              Description: 'وصف افتراضي للمشروع',
+              ProjectStart: start.toISOString(),
+              ProjectEnd: end.toISOString()
+            });
+          }
+          filtered = demo;
+          this.usingDefaultData = true;
         } else {
-          this.error = `حدث خطأ أثناء تحديث الجلسة: ${err.statusText || 'خطأ غير معروف'}`;
+          this.usingDefaultData = false;
         }
+
+        this.projects = filtered.map((r: any) => {
+          const id = r.id || r.Id;
+          const chosen = id && this.projectDatesMap[String(id)] ? new Date(this.projectDatesMap[String(id)]) : null;
+          return {
+            id,
+            title: r.ProjectNameL1 || r.projectNameL1 || r.ProjectNameL2 || r.projectNameL2 || r.title || 'Project',
+            description: r.Description || r.description || '',
+            date: chosen || this.extractDate(r),
+            startDate: r.ProjectStart || r.projectStart || null,
+            endDate: r.ProjectEnd || r.projectEnd || null
+          };
+        });
+
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading projects:', err);
+        this.error = 'فشل تحميل البيانات';
         this.loading = false;
       }
     });
   }
 
-  deleteSession(session: any) {
-    if (!confirm('هل أنت متأكد من حذف هذه الجلسة؟')) {
-      return;
-    }
+  // ==== Admin actions (create/update using ProjectsMaster) ====
+  openCreateForm() {
+    this.selectedProject = null;
+    this.isFormOpen = true;
+    this.formModel = {
+      ProjectNameL1: '',
+      ProjectNameL2: '',
+      Description: '',
+      ProjectStart: '',
+      ProjectEnd: ''
+    };
+  }
 
-    this.loading = true;
-    this.error = null;
-
-    const sessionId = session.id || session.Id || session.detailId || session.uid;
-    if (!sessionId) {
-      this.error = 'معرف الجلسة غير صحيح';
-      this.loading = false;
-      return;
-    }
-
-    this.api.deleteProgramsContentMaster(sessionId).subscribe({
-      next: () => {
-        this.fetchSessions();
-      },
-      error: (err) => {
-        console.error('Error deleting session:', err);
-        this.error = 'حدث خطأ أثناء حذف الجلسة';
-        this.loading = false;
-      }
-    });
+  openEditForm(project: any) {
+    this.selectedProject = project;
+    this.isFormOpen = true;
+    this.formModel = {
+      ProjectNameL1: project?.ProjectNameL1 || project?.title || '',
+      ProjectNameL2: project?.ProjectNameL2 || '',
+      Description: project?.Description || project?.description || '',
+      ProjectStart: project?.startDate ? String(project.startDate).slice(0,10) : '',
+      ProjectEnd: project?.endDate ? String(project.endDate).slice(0,10) : ''
+    };
   }
 
   cancelForm() {
-    this.showAddForm = false;
-    this.showEditForm = false;
-    this.editingSession = null;
-    this.resetForm();
-    this.error = null;
+    this.isFormOpen = false;
+    this.selectedProject = null;
+    this.formModel = {
+      ProjectNameL1: '',
+      ProjectNameL2: '',
+      Description: '',
+      ProjectStart: '',
+      ProjectEnd: ''
+    };
+  }
+
+  async saveProject(form: {
+    ProjectNameL1: string;
+    ProjectNameL2?: string;
+    Description?: string;
+    ProjectStart: string;
+    ProjectEnd?: string;
+    id?: any;
+  }) {
+    try {
+      this.isSubmitting = true;
+      if (!form.ProjectNameL1) throw new Error('الاسم العربي مطلوب');
+      if (!form.ProjectStart) throw new Error('تاريخ البداية مطلوب');
+
+      if (this.selectedProject && this.selectedProject.id) {
+        await this.api.updateProjectsMaster(String(this.selectedProject.id), form).toPromise();
+      } else {
+        const created = await this.api.createProjectsMaster(form).toPromise();
+        const newId = created?.id || created?.Id;
+        if (newId && form.ProjectStart) this.persistProjectDate(newId, form.ProjectStart);
+      }
+      this.isFormOpen = false;
+      this.selectedProject = null;
+      this.fetchProjects();
+    } catch (e: any) {
+      this.error = e?.message || 'خطأ أثناء الحفظ';
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 }
+

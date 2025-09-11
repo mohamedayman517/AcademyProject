@@ -1,9 +1,11 @@
-import { NgModule } from '@angular/core';
+import { NgModule, LOCALE_ID } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
+import { registerLocaleData } from '@angular/common';
+import localeArEg from '@angular/common/locales/ar-EG';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { HomeComponent } from './pages/home/home.component';
@@ -37,6 +39,11 @@ import { ServicesComponent } from './pages/services/services.component';
 import { AccountComponent } from './pages/account/account.component';
 import { TranslatePipe } from './pipes/translate.pipe';
 import { HeaderComponent } from './components/header/header.component';
+import { WeekdayNamePipe } from './pipes/weekday-name.pipe';
+import { MonthDaysPipe } from './pipes/month-days.pipe';
+import { ByDatePipe } from './pipes/by-date.pipe';
+
+registerLocaleData(localeArEg, 'ar-EG');
 import { ProjectsDetailsComponent } from './pages/projects-details/projects-details.component';
 import { SessionsComponent } from './pages/sessions/sessions.component';
 import { StudentsComponent } from './pages/students/students.component';
@@ -47,6 +54,15 @@ import { CertificatesComponent } from './pages/certificates/certificates.compone
 import { TrainersComponent } from './pages/trainers/trainers.component';
 import { JobsComponent } from './pages/jobs/jobs.component';
 import { ProfileComponent } from './pages/profile/profile.component';
+import { SettingsComponent } from './pages/settings/settings.component';
+import { TrainerProfileComponent } from './pages/trainer-profile/trainer-profile.component';
+import { TrainerEditComponent } from './pages/trainer-edit/trainer-edit.component';
+import { EvaluationsComponent } from './pages/evaluations/evaluations.component';
+import { ComplaintSubmitComponent } from './pages/complaint-submit/complaint-submit.component';
+import { StudentAddComponent } from './pages/student-add/student-add.component';
+import { StudentAttendanceComponent } from './pages/student-attendance/student-attendance.component';
+import { StudentEvaluationsComponent } from './pages/student-evaluations/student-evaluations.component';
+import { StudentDashboardComponent } from './pages/student-dashboard/student-dashboard.component';
 
 @NgModule({
   declarations: [
@@ -90,6 +106,18 @@ import { ProfileComponent } from './pages/profile/profile.component';
     TrainersComponent,
     JobsComponent,
     ProfileComponent,
+    SettingsComponent,
+    EvaluationsComponent,
+    TrainerProfileComponent,
+    TrainerEditComponent,
+    ComplaintSubmitComponent,
+    StudentAddComponent,
+    StudentAttendanceComponent,
+    StudentEvaluationsComponent,
+    StudentDashboardComponent,
+    WeekdayNamePipe,
+    MonthDaysPipe,
+    ByDatePipe,
   ],
   imports: [
     BrowserModule,
@@ -101,6 +129,7 @@ import { ProfileComponent } from './pages/profile/profile.component';
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: LOCALE_ID, useValue: 'ar-EG' },
   ],
   bootstrap: [AppComponent]
 })

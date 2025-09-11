@@ -1,17 +1,88 @@
-<section class="students-evaluations-page" dir="rtl">
-  <div class="container">
-    <div class="page-header">
-      <h1>{{ 'evaluations_screen' | t }}</h1>
-      <p>{{ 'manage_student_evaluations' | t }}</p>
+<section class="relative isolate overflow-hidden">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 lg:py-28 relative z-10" [dir]="isRtl ? 'rtl' : 'ltr'">
+    <!-- العنوان وزر الطلاب -->
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between mb-6">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white">{{ isRtl ? 'التقييمات' : 'Evaluations' }}</h1>
+      <a routerLink="/students" class="rounded-full bg-transparent border border-white/30 text-white hover:bg-white/10 px-4 py-2">
+        {{ isRtl ? 'الطلاب' : 'Students' }}
+      </a>
     </div>
 
-    <div *ngIf="loading" class="loading">{{ 'loading_plain' | t }}</div>
-    <div *ngIf="error" class="error">{{ error }}</div>
+    <!-- النموذج -->
+    <form (ngSubmit)="onSubmit($event)" 
+          class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-6 space-y-5">
 
-    <div *ngIf="!loading && !error" class="content">
-      <div class="info-card">
-        <h2>{{ 'evaluations_management' | t }}</h2>
-        <p>{{ 'evaluations_placeholder' | t }}</p>
+      <!-- صف الطالب والتاريخ -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الطالب' : 'Student' }}</label>
+          <select class="w-full px-4 py-2 rounded bg-white text-black border border-white/20" [(ngModel)]="studentId" name="studentId">
+            <option value="">{{ isRtl ? 'اختر طالباً' : 'Select student' }}</option>
+            <option *ngFor="let o of studentOptions" [ngValue]="o.id">
+              {{ o.name }}<span *ngIf="o.email"> - {{ o.email }}</span>
+            </option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'التاريخ' : 'Date' }}</label>
+          <input type="date" class="w-full px-4 py-2 rounded bg-white text-black border border-white/20" [(ngModel)]="date" name="date" />
+        </div>
+      </div>
+
+      <!-- صف النسب -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الحضور %' : 'Attendance %' }}</label>
+          <input type="number" min="0" max="100" class="w-full px-4 py-2 rounded bg-white text-black border border-white/20" [(ngModel)]="attendanceRate" name="attendanceRate" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'التصفح %' : 'Browsing %' }}</label>
+          <input type="number" min="0" max="100" class="w-full px-4 py-2 rounded bg-white text-black border border-white/20" [(ngModel)]="browsingRate" name="browsingRate" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'المحتوى %' : 'Content %' }}</label>
+          <input type="number" min="0" max="100" class="w-full px-4 py-2 rounded bg-white text-black border border-white/20" [(ngModel)]="contentRatio" name="contentRatio" />
+        </div>
+      </div>
+
+      <!-- زر الإنشاء -->
+      <div class="flex justify-center">
+        <button type="submit" class="rounded-full academy-button px-6 py-2 w-full sm:w-auto text-base font-medium">
+          {{ isRtl ? 'إنشاء' : 'Create' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- عرض التقييمات -->
+    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6">
+      <div *ngIf="loading" class="text-center text-white/90 py-16">{{ isRtl ? 'جاري التحميل...' : 'Loading...' }}</div>
+      <div *ngIf="!loading && recordsToShow.length === 0" class="text-center text-white/80 py-16">
+        {{ studentId ? (isRtl ? 'لا توجد تقييمات لهذا الطالب' : 'No evaluations for this student') : (isRtl ? 'لا توجد تقييمات' : 'No evaluations') }}
+      </div>
+      <div *ngIf="!loading && recordsToShow.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div *ngFor="let e of recordsToShow" class="p-4 rounded-xl bg-white/5 border border-white/10">
+          <div class="flex items-center justify-between">
+            <div class="text-white font-semibold">{{ isRtl ? 'التقييم' : 'Evaluation' }}</div>
+            <div class="text-white/70 text-sm">{{ e.date ? (e.date | date: (isRtl ? 'dd/MM/yyyy' : 'MM/dd/yyyy')) : '' }}</div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 mt-3 text-center text-white">
+            <div>
+              <div class="text-xs text-white/70">{{ isRtl ? 'الحضور' : 'Attendance' }}</div>
+              <div class="font-bold">{{ e.attendanceRate ?? '-' }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-white/70">{{ isRtl ? 'التصفح' : 'Browsing' }}</div>
+              <div class="font-bold">{{ e.browsingRate ?? '-' }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-white/70">{{ isRtl ? 'المحتوى' : 'Content' }}</div>
+              <div class="font-bold">{{ e.contentRatio ?? '-' }}</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

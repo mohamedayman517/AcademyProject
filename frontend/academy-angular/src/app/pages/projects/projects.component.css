@@ -1,33 +1,53 @@
 :host{display:block}
 
-.projects-page{
-  padding: 40px 0 80px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  min-height: 100vh;
-  position: relative;
-  overflow: visible;
-}
-
-.projects-page::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="triangles" width="40" height="40" patternUnits="userSpaceOnUse"><polygon points="20,5 35,30 5,30" fill="none" stroke="rgba(42, 118, 210, 0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23triangles)"/></svg>');
-  opacity: 0.6;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.container{
-  max-width:1400px;
-  width:98%;
-  margin-inline:auto;
-  position: relative;
-  z-index: 1;
-}
+/* Animated gradient and overlay */
+.absolute{position:absolute}
+.relative{position:relative}
+.inset-0{top:0;right:0;bottom:0;left:0}
+.-z-10{z-index:-10}
+.z-0{z-index:0}
+.z-10{z-index:10}
+.opacity-90{opacity:.9}
+.bg-black\/55{background:rgba(0,0,0,.55)}
+.max-w-7xl{max-width:80rem}
+.mx-auto{margin-left:auto;margin-right:auto}
+.px-4{padding-left:1rem;padding-right:1rem}
+.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}
+.lg\:px-8{padding-left:2rem;padding-right:2rem}
+.py-14{padding-top:3.5rem;padding-bottom:3.5rem}
+.md\:py-20{padding-top:5rem;padding-bottom:5rem}
+.lg\:py-28{padding-top:7rem;padding-bottom:7rem}
+.mb-6{margin-bottom:1.5rem}
+.text-white{color:#fff}
+.text-white\/70{color:rgba(255,255,255,.7)}
+.text-white\/80{color:rgba(255,255,255,.8)}
+.text-3xl{font-size:1.875rem}
+.sm\:text-4xl{font-size:2.25rem}
+.font-extrabold{font-weight:800}
+.flex{display:flex}
+.justify-between{justify-content:space-between}
+.items-center{align-items:center}
+.gap-2{gap:.5rem}
+.rounded-2xl{border-radius:1rem}
+.p-4{padding:1rem}
+.sm\:p-6{padding:1.5rem}
+.border{border-width:1px}
+.border-white\/20{border-color:rgba(255,255,255,.2)}
+.bg-white\/10{background:rgba(255,255,255,.1)}
+.backdrop-blur-sm{backdrop-filter:blur(6px)}
+.overflow-x-auto{overflow-x:auto}
+.w-full{width:100%}
+.text-sm{font-size:.875rem}
+.p-2{padding:.5rem}
+.border-white\/10{border-color:rgba(255,255,255,.1)}
+.py-10{padding-top:2.5rem;padding-bottom:2.5rem}
+.animate-spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.h-12{height:3rem}.w-12{width:3rem}
+.mx-auto{margin-left:auto;margin-right:auto}
+.mb-4{margin-bottom:1rem}
+.academy-button{background-color:#3b82f6;color:#fff;padding:.5rem 1.5rem;border-radius:999px;border:none;cursor:pointer}
+.btn-xs{padding:.25rem .5rem;border-radius:999px;border:1px solid rgba(255,255,255,.3);color:#fff;background:transparent}
 
 .page-header{
   text-align:center;
@@ -69,83 +89,47 @@
   line-height: 1.6;
 }
 
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(350px,1fr));
-  gap:30px;
+.cards{ display:none !important }
+
+.project-card{ display:none !important }
+
+.badge{ display:none !important }
+
+.body{ display:none !important }
+
+.card-title{ display:none !important }
+
+.card-desc{ display:none !important }
+
+.ghost{ display:none !important }
+
+/* Table layout fixes for RTL and spacing */
+.projects-table{table-layout:fixed;border-collapse:separate;border-spacing:0;width:100%}
+.projects-table th,.projects-table td{vertical-align:top}
+.projects-table th:nth-child(5),
+.projects-table td:nth-child(5){width:32%}
+.projects-table th:nth-child(6),
+.projects-table td:nth-child(6){width:auto}
+
+.description-cell{white-space:normal;word-wrap:break-word;overflow-wrap:anywhere;line-height:1.4}
+.actions-cell{white-space:normal}
+.actions-group{display:inline-flex;gap:.5rem;flex-wrap:wrap}
+
+/* Ensure no horizontal scroll on smaller screens */
+@media (max-width: 1024px){
+  .projects-table th:nth-child(5),
+  .projects-table td:nth-child(5){width:28%}
 }
 
-.project-card{
-  position:relative;
-  border:1px solid rgba(42, 118, 210, 0.1);
-  border-radius:20px;
-  background:#fff;
-  box-shadow:0 8px 25px rgba(0,0,0,0.08);
-  padding:0;
-  overflow: hidden;
-  transition: all 0.3s ease;
+@media (max-width: 768px){
+  .projects-table th:nth-child(5),
+  .projects-table td:nth-child(5){width:auto}
 }
 
-.project-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(42, 118, 210, 0.15);
-}
-
-.badge{
-  position:absolute;
-  top:16px;
-  left:16px;
-  background: linear-gradient(135deg, #2a76d2, #4A90E2);
-  color:#fff;
-  border:none;
-  padding:8px 14px;
-  border-radius:20px;
-  font-weight:700;
-  font-size:12px;
-  box-shadow: 0 4px 15px rgba(42, 118, 210, 0.3);
-  z-index: 2;
-}
-
-.body{
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-  padding: 24px;
-}
-
-.card-title{
-  margin:0;
-  font-size:20px;
-  color: var(--text);
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-.card-desc{
-  margin:0;
-  color:#6b7280;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-.ghost{
-  align-self:flex-start;
-  padding:12px 20px;
-  border-radius:25px;
-  border:2px solid var(--primary);
-  background:transparent;
-  color:var(--primary);
-  font-weight:700;
-  cursor:pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
-}
-
-.ghost:hover{
-  background: var(--primary);
-  color: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(42, 118, 210, 0.3);
+/* On wider screens keep actions in one line */
+@media (min-width: 1025px){
+  .actions-cell{white-space:nowrap}
+  .actions-group{flex-wrap:nowrap}
 }
 
 @media (max-width: 768px) {

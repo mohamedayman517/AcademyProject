@@ -1,13 +1,98 @@
-<section class="services">
-  <div class="container">
-    <h1 class="title">{{ 'services_title' | t }}</h1>
-    <p class="subtitle">{{ 'services_subtitle' | t }}</p>
+<section class="relative isolate overflow-hidden" [dir]="isRtl ? 'rtl' : 'ltr'">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
+  <div class="absolute -top-20 -left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl hidden md:block"></div>
+  <div class="absolute -bottom-24 -right-24 w-80 h-80 bg-black/10 rounded-full blur-3xl hidden md:block"></div>
 
-    <div class="grid">
-      <div class="card" *ngFor="let svc of services">
-        <div class="icon" [innerHTML]="svc.icon"></div>
-        <h3 class="card-title">{{ svc.title | t }}</h3>
-        <p class="card-desc">{{ svc.desc | t }}</p>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 lg:py-28 relative z-10">
+    <!-- Header -->
+    <div class="text-center mb-16" [class.ar]="isRtl">
+      <div class="flex items-center justify-center gap-3 mb-6">
+        <svg class="w-12 h-12 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <h1 class="text-4xl lg:text-6xl font-bold text-white">
+          {{ isRtl ? 'الشهادات المعتمدة' : 'Accredited Certificates' }}
+        </h1>
+      </div>
+      <p class="text-xl text-white/90 max-w-3xl mx-auto">
+        {{ isRtl ? 'شهاداتنا معترف بها دولياً وتساعدك على تطوير مسيرتك المهنية' : 'Our certificates are internationally recognized and help you advance your career' }}
+      </p>
+    </div>
+
+    <!-- Certificates -->
+    <div class="mb-16">
+      <h2 class="text-3xl font-bold text-white text-center mb-12">
+        {{ isRtl ? 'الشهادات المهنية' : 'Professional Certificates' }}
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300" *ngFor="let cert of certificates; index as idx">
+          <div class="flex items-start gap-4">
+            <div class="text-4xl">{{ cert.icon }}</div>
+            <div class="flex-1">
+              <h3 class="text-xl font-semibold text-white mb-2">{{ cert.title }}</h3>
+              <p class="text-white/80 mb-4">{{ cert.description }}</p>
+              <div class="flex items-center gap-4 text-sm text-white/60">
+                <span class="flex items-center gap-1">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {{ cert.duration }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  {{ cert.level }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="mb-16">
+      <h2 class="text-3xl font-bold text-white text-center mb-12">
+        {{ isRtl ? 'مميزات الشهادات' : 'Certificate Features' }}
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 justify-items-center">
+        <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-all duration-300 max-w-sm mx-auto" *ngFor="let feature of features; index as i">
+          <div class="w-16 h-16 mx-auto mb-6 bg-primary/20 rounded-full flex items-center justify-center ring-1 ring-white/20">
+            <!-- Simple icon substitutes -->
+            <svg *ngIf="feature.icon==='globe'" class="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <svg *ngIf="feature.icon==='clock'" class="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <svg *ngIf="feature.icon==='shield'" class="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <svg *ngIf="feature.icon==='award'" class="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.11"/></svg>
+          </div>
+          <h3 class="text-xl font-semibold text-white mb-2">{{ feature.title }}</h3>
+          <p class="text-white/80 leading-relaxed">{{ feature.description }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steps -->
+    <div>
+      <h2 class="text-3xl font-bold text-white text-center mb-12">
+        {{ isRtl ? 'كيفية الحصول على الشهادات' : 'How to Earn Certificates' }}
+      </h2>
+      <div class="max-w-4xl mx-auto">
+        <div class="space-y-6 md:space-y-8">
+          <div class="flex items-start gap-4 md:gap-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 md:p-6 hover:bg-white/15 transition-all duration-300" *ngFor="let step of steps; index as i">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-base md:text-lg flex-shrink-0 shadow-sm ring-1 ring-white/20">{{ step.number }}</div>
+            <div>
+              <h3 class="text-lg md:text-xl font-semibold text-white mb-1 md:mb-2">{{ step.title }}</h3>
+              <p class="text-white/80 leading-relaxed">{{ step.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="text-center mt-16">
+      <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8">
+        <h3 class="text-2xl font-bold text-white mb-4">{{ isRtl ? 'ابدأ رحلتك نحو الشهادات المهنية' : 'Start Your Journey to Professional Certificates' }}</h3>
+        <p class="text-white/80 mb-6">{{ isRtl ? 'انضم إلى آلاف الطلاب الذين حصلوا على شهادات معتمدة وساعدتهم في تطوير مسيرتهم المهنية' : 'Join thousands of students who have earned accredited certificates and advanced their careers' }}</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a class="btn-primary" routerLink="/courses">{{ isRtl ? 'تصفح الدورات' : 'Browse Courses' }}</a>
+          <a class="btn-secondary" routerLink="/contact">{{ isRtl ? 'تواصل معنا' : 'Contact Us' }}</a>
+        </div>
       </div>
     </div>
   </div>

@@ -25,3 +25,4 @@ export class CertificatesComponent implements OnInit {
     }, 1000);
   }
 }
+

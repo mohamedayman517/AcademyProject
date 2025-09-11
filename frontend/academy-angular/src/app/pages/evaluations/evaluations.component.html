@@ -1,0 +1,301 @@
+<!-- Loading State -->
+<section *ngIf="loading" class="relative isolate overflow-hidden">
+  <div class="absolute inset-0 -z-10 solid-blue-bg opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/40"></div>
+  <div class="flex items-center justify-center min-h-screen relative z-10">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      <p class="text-white/90">{{ translations.loading }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- Main Evaluations Content -->
+<section *ngIf="!loading" class="relative isolate overflow-hidden">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
+  <div class="absolute -top-20 -left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl hidden md:block"></div>
+  <div class="absolute -bottom-24 -right-24 w-80 h-80 bg-black/10 rounded-full blur-3xl hidden md:block"></div>
+  
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 lg:py-28 relative z-10" [dir]="isRtl ? 'rtl' : 'ltr'">
+    <!-- زر العودة -->
+    <div class="mb-8 animate-fade-in-up">
+      <button
+        (click)="goBack()"
+        class="flex items-center gap-2 text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-colors"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        {{ translations.back }}
+      </button>
+    </div>
+
+    <!-- العنوان الرئيسي -->
+    <div class="text-center mb-6 animate-fade-in-up">
+      <h1 class="text-4xl lg:text-6xl font-bold text-white mb-6 text-shadow">
+        {{ translations.title }}
+      </h1>
+      <p class="text-xl text-white/90 max-w-3xl mx-auto">
+        {{ translations.subtitle }}
+      </p>
+    </div>
+
+    <!-- اختيار الطالب -->
+    <div class="mb-10 animate-fade-in-up">
+      <label class="block text-sm font-medium text-white mb-2">{{ translations.student }}</label>
+      <div class="relative w-full max-w-xl">
+        <button
+          (click)="openStudent = !openStudent"
+          class="w-full justify-between bg-white/10 border border-white/30 text-white hover:bg-white/20 px-4 py-3 rounded-lg flex items-center transition-colors"
+          aria-expanded="openStudent"
+          aria-haspopup="listbox"
+        >
+          <span class="truncate text-left">
+            <span *ngIf="selectedStudent; else noStudentSelected" class="block">
+              <span class="font-medium">{{ selectedStudent.name }}</span>
+              <span *ngIf="selectedStudent.email" class="block text-xs text-white/70">{{ selectedStudent.email }}</span>
+            </span>
+            <ng-template #noStudentSelected>
+              <span class="text-white/70">{{ translations.selectStudent }}</span>
+            </ng-template>
+          </span>
+          <svg class="ml-2 h-4 w-4 shrink-0 opacity-50 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+          </svg>
+        </button>
+        
+        <!-- Dropdown Menu -->
+        <div *ngIf="openStudent" class="absolute z-10 w-full mt-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg max-h-64 overflow-auto">
+          <div class="p-2">
+            <input
+              type="text"
+              [ngModel]="studentQuery"
+              (ngModelChange)="studentQuery = $event"
+              placeholder="{{ translations.searchStudents }}"
+              class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+            />
+            <div *ngIf="filteredStudentOptions.length === 0" class="text-white/70 px-3 py-2 text-sm">
+              {{ translations.noResults }}
+            </div>
+            <div *ngFor="let student of filteredStudentOptions" 
+                 (click)="onStudentSelect(student.id)"
+                 class="cursor-pointer text-white hover:bg-white/10 px-3 py-2 rounded flex items-center gap-2">
+              <svg *ngIf="studentId === student.id" class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <svg *ngIf="studentId !== student.id" class="w-4 h-4 opacity-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="truncate">{{ student.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ملخص التقييمات -->
+    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 mb-12 animate-fade-in-up">
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">
+        {{ translations.overallSummary }}
+      </h2>
+      
+      <div class="flex flex-col md:flex-row md:flex-nowrap gap-6 items-stretch justify-between">
+        <!-- Attendance -->
+        <div class="flex items-center gap-4 bg-white/10 border border-white/20 rounded-xl p-4 flex-1">
+          <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="text-white">
+            <div class="text-2xl font-bold">{{ getAvgAttendance() }}%</div>
+            <div class="text-white/70 text-sm">{{ translations.avgAttendance }}</div>
+          </div>
+        </div>
+
+        <!-- Browsing -->
+        <div class="flex items-center gap-4 bg-white/10 border border-white/20 rounded-xl p-4 flex-1">
+          <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+          </div>
+          <div class="text-white">
+            <div class="text-2xl font-bold">{{ getAvgBrowsing() }}%</div>
+            <div class="text-white/70 text-sm">{{ translations.avgBrowsing }}</div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex items-center gap-4 bg-white/10 border border-white/20 rounded-xl p-4 flex-1">
+          <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <div class="text-white">
+            <div class="text-2xl font-bold">{{ getAvgContent() }}%</div>
+            <div class="text-white/70 text-sm">{{ translations.avgContent }}</div>
+          </div>
+        </div>
+
+        <!-- Overall -->
+        <div class="flex items-center gap-4 bg-white/10 border border-white/20 rounded-xl p-4 flex-1">
+          <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+            </svg>
+          </div>
+          <div class="text-white">
+            <div class="text-2xl font-bold">{{ getOverallAverage() }}%</div>
+            <div class="text-white/70 text-sm">{{ translations.overallAvg }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- تفاصيل التقييمات -->
+    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 mb-12 animate-fade-in-up">
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">
+        {{ translations.evaluationDetails }}
+      </h2>
+      
+      <div *ngIf="evalsToShow.length > 0; else noEvaluations" class="space-y-6">
+        <div *ngFor="let evaluationItem of evalsToShow; let i = index" 
+             class="bg-white/5 border border-white/10 rounded-xl p-6 animate-fade-in-scale">
+          <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4">
+            <div class="flex items-center gap-3 mb-4 lg:mb-0">
+              <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">
+                  {{ translations.evaluation }} #{{ i + 1 }}
+                </h3>
+                <p class="text-white/70 text-sm">
+                  {{ evaluationItem.date ? (evaluationItem.date | date:'mediumDate':'':(isRtl ? 'ar-SA' : 'en-US')) : 'N/A' }}
+                </p>
+              </div>
+            </div>
+            
+            <div class="text-right">
+              <div class="text-3xl font-bold" [ngClass]="getGradeColor((evaluationItem.attendanceRate + evaluationItem.browsingRate + evaluationItem.contentRatio) / 3)">
+                {{ Math.round((evaluationItem.attendanceRate + evaluationItem.browsingRate + evaluationItem.contentRatio) / 3) }}%
+              </div>
+              <div class="text-white/70 text-sm">
+                {{ getGradeLabel((evaluationItem.attendanceRate + evaluationItem.browsingRate + evaluationItem.contentRatio) / 3) }}
+              </div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-white/80 text-sm">
+                  {{ translations.attendance }}
+                </span>
+              </div>
+              <div class="text-xl font-bold text-white">
+                {{ evaluationItem.attendanceRate }}%
+              </div>
+            </div>
+            
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                <span class="text-white/80 text-sm">
+                  {{ translations.browsing }}
+                </span>
+              </div>
+              <div class="text-xl font-bold text-white">
+                {{ evaluationItem.browsingRate }}%
+              </div>
+            </div>
+            
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <span class="text-white/80 text-sm">
+                  {{ translations.content }}
+                </span>
+              </div>
+              <div class="text-xl font-bold text-white">
+                {{ evaluationItem.contentRatio }}%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <ng-template #noEvaluations>
+        <div class="text-center py-12">
+          <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center">
+            <svg class="w-12 h-12 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+            </svg>
+          </div>
+          <p class="text-white/70 text-lg">
+            {{ studentId ? translations.noEvaluationsStudent : translations.noEvaluations }}
+          </p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- سجل الحضور -->
+    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 animate-fade-in-up">
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">
+        {{ translations.attendanceRecord }}
+      </h2>
+      
+      <div *ngIf="attendanceToShow.length > 0; else noAttendance" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div *ngFor="let record of attendanceToShow.slice(0, 12); let i = index" 
+             class="p-4 rounded-lg border animate-fade-in-scale"
+             [ngClass]="record.attendAccept ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'">
+          <div class="flex items-center justify-between mb-2 text-white">
+            <div class="flex items-center gap-2">
+              <svg *ngIf="record.attendAccept" class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <svg *ngIf="!record.attendAccept" class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="text-sm text-white/90">
+                {{ record.attendAccept ? translations.present : translations.absent }}
+              </span>
+            </div>
+            <span class="text-sm text-white/90">
+              {{ record.dateAttend | date:'mediumDate':'':(isRtl ? 'ar-SA' : 'en-US') }}
+            </span>
+          </div>
+          
+          <div class="text-white font-medium">
+            {{ record.dateAttend | date:'mediumDate':'':(isRtl ? 'ar-SA' : 'en-US') }}
+          </div>
+        </div>
+      </div>
+      
+      <ng-template #noAttendance>
+        <div class="text-center py-12">
+          <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center">
+            <svg class="w-12 h-12 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <p class="text-white/70 text-lg">
+            {{ studentId ? translations.noAttendanceStudent : translations.noAttendance }}
+          </p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</section>

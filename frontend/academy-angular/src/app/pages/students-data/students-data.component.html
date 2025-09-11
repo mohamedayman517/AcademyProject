@@ -1,21 +1,92 @@
-<section class="students-data-page" dir="rtl">
-  <div class="container">
-    <div class="page-header">
-      <h1>{{ 'student_data_entry' | t }}</h1>
-      <p>{{ 'manage_student_information' | t }}</p>
+<section class="relative isolate overflow-hidden" [dir]="isRtl ? 'rtl' : 'ltr'">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
+
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 lg:py-28 relative z-10">
+    <div *ngIf="loadingData" class="text-center text-white/90 py-16">
+      {{ isRtl ? 'جاري التحميل...' : 'Loading...' }}
     </div>
+    <ng-container *ngIf="!loadingData">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-6">
+        {{ isEditMode ? (isRtl ? 'تعديل بيانات الطالب' : 'Edit Student Data') : (isRtl ? 'إنشاء حساب طالب' : 'Create Student Account') }}
+      </h1>
 
-    <div *ngIf="loading" class="loading">{{ 'loading_plain' | t }}</div>
-    <div *ngIf="error" class="error">{{ error }}</div>
-
-    <div *ngIf="!loading && !error" class="content">
-      <div class="info-card">
-        <h2>{{ 'student_information' | t }}</h2>
-        <p>{{ 'student_data_placeholder' | t }}</p>
-        <div *ngIf="studentId" class="student-id">
-          <strong>{{ 'student_id' | t }}:</strong> {{ studentId }}
+      <form (ngSubmit)="onSubmit($event)" class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 grid gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الاسم الأول' : 'First Name' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="firstName" name="firstName" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'اسم العائلة' : 'Last Name' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="lastName" name="lastName" required />
+          </div>
         </div>
-      </div>
-    </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'اسم الطالب (ع)' : 'Student Name (AR)' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="studentNameL1" name="studentNameL1" [placeholder]="isRtl ? 'مثال: أحمد محمد' : 'e.g., Ahmed Mohamed'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'اسم الطالب (EN)' : 'Student Name (EN)' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="studentNameL2" name="studentNameL2" [placeholder]="isRtl ? 'مثال: Ahmed Mohamed' : 'e.g., Ahmed Mohamed'" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'البريد الإلكتروني' : 'Email' }}</label>
+            <input type="email" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="email" name="email" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'رقم الهاتف' : 'Phone' }}</label>
+            <input type="tel" inputmode="numeric" pattern="[0-9]*" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="phoneNumber" name="phoneNumber" required />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'العنوان' : 'Address' }}</label>
+          <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="address" name="address" [placeholder]="isRtl ? 'العنوان التفصيلي' : 'Full address'" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" *ngIf="!isEditMode">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الرقم السري' : 'Password' }}</label>
+            <input type="password" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="password" name="password" required minlength="6" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'تأكيد الرقم السري' : 'Confirm Password' }}</label>
+            <input type="password" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="confirmPassword" name="confirmPassword" required minlength="6" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الأكاديمية' : 'Academy' }} *</label>
+            <select class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="academyId" name="academyId" required>
+              <option value="" disabled>{{ isRtl ? 'اختر الأكاديمية' : 'Choose academy' }}</option>
+              <option *ngFor="let a of academies" [value]="a.id || a.Id">{{ a.academyNameL1 || a.AcademyNameL1 || a.academyNameL2 || a.AcademyNameL2 || a.name || a.id }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الفرع' : 'Branch' }} *</label>
+            <select class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="branchId" name="branchId" required>
+              <option value="" disabled>{{ isRtl ? 'اختر الفرع' : 'Choose branch' }}</option>
+              <option *ngFor="let b of branches" [value]="b.id || b.Id">{{ b.branchNameL1 || b.BranchNameL1 || b.branchNameL2 || b.BranchNameL2 || b.name || b.id }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <button type="submit" [disabled]="loading" class="rounded-full academy-button px-6 py-2">
+            {{ loading ? (isRtl ? 'جارٍ الإضافة...' : 'Adding...') : (isRtl ? 'إضافة' : 'Add') }}
+          </button>
+          <a routerLink="/students" class="rounded-full bg-transparent border border-white/30 text-white hover:bg-white/10 px-6 py-2">{{ isRtl ? 'رجوع للقائمة' : 'Back to list' }}</a>
+        </div>
+        <div *ngIf="error" class="text-red-300 mt-2">{{ error }}</div>
+      </form>
+    </ng-container>
   </div>
 </section>
+

@@ -31,6 +31,10 @@ import { CertificatesComponent } from './pages/certificates/certificates.compone
 import { TrainersComponent } from './pages/trainers/trainers.component';
 import { JobsComponent } from './pages/jobs/jobs.component';
 import { ProfileComponent } from './pages/profile/profile.component';
+import { SettingsComponent } from './pages/settings/settings.component';
+import { TrainerProfileComponent } from './pages/trainer-profile/trainer-profile.component';
+import { TrainerEditComponent } from './pages/trainer-edit/trainer-edit.component';
+import { EvaluationsComponent } from './pages/evaluations/evaluations.component';
 import { ServicesComponent } from './pages/services/services.component';
 
 const routes: Routes = [
@@ -46,7 +50,13 @@ const routes: Routes = [
   { path: 'students/attendance', component: StudentsAttendanceComponent, canActivate: [AdminGuard] },
   { path: 'students/evaluations', component: StudentsEvaluationsComponent, canActivate: [AdminGuard] },
   { path: 'certificates', component: CertificatesComponent, canActivate: [AdminGuard] },
-  { path: 'trainers', component: TrainersComponent, canActivate: [AdminGuard] },
+  { path: 'trainers', component: TrainersComponent },
+  { path: 'trainers/soft-skills', component: TrainersComponent },
+  { path: 'trainers/technical', component: TrainersComponent },
+  { path: 'trainers/freelancer', component: TrainersComponent },
+  { path: 'trainers/english', component: TrainersComponent },
+  { path: 'trainer/:id', component: TrainerProfileComponent },
+  { path: 'trainers/edit', component: TrainerEditComponent },
   { path: 'jobs', component: JobsComponent, canActivate: [AdminGuard] },
   { path: 'register', component: RegisterComponent },
   { path: 'api-test', component: ApiTestComponent },
@@ -57,6 +67,8 @@ const routes: Routes = [
   { path: 'api-health', component: ApiHealthComponent, canActivate: [AdminGuard] },
   { path: 'account', component: AccountComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+  { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
+  { path: 'evaluations', component: EvaluationsComponent, canActivate: [AuthGuard] },
   {
     path: 'complaints',
     component: ComplaintsWrapperComponent,

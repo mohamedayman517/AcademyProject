@@ -1,18 +1,53 @@
-<section class="students-attendance-page" dir="rtl">
-  <div class="container">
-    <div class="page-header">
-      <h1>{{ 'attendance_screen' | t }}</h1>
-      <p>{{ 'manage_student_attendance' | t }}</p>
+<section class="relative isolate overflow-hidden">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 lg:py-28 relative z-10" [dir]="isRtl ? 'rtl' : 'ltr'">
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between mb-6">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white">{{ isRtl ? 'الحضور والانصراف' : 'Attendance' }}</h1>
+      <a routerLink="/students" class="rounded-full bg-transparent border border-white/30 text-white hover:bg-white/10 px-4 py-2">{{ isRtl ? 'الطلاب' : 'Students' }}</a>
     </div>
 
-    <div *ngIf="loading" class="loading">{{ 'loading_plain' | t }}</div>
-    <div *ngIf="error" class="error">{{ error }}</div>
+    <form (ngSubmit)="onSubmit($event)" class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-6">
+      <div class="grid grid-cols-12 gap-4 items-end">
+        <div class="col-span-5">
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الطالب' : 'Student' }}</label>
+          <select class="w-full px-4 py-2 rounded bg-white text-black border border-white/20" [(ngModel)]="studentId" name="studentId">
+            <option value="">{{ isRtl ? 'اختر طالباً' : 'Select student' }}</option>
+            <option *ngFor="let o of studentOptions" [ngValue]="o.id">{{ o.name }}<span *ngIf="o.email"> - {{ o.email }}</span></option>
+          </select>
+        </div>
+        <div class="col-span-3">
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'التاريخ' : 'Date' }}</label>
+          <input type="date" class="w-full px-4 py-2 rounded bg-white text-black border border-white/20" [(ngModel)]="dateAttend" name="dateAttend" [attr.placeholder]="isRtl ? 'يوم/شهر/سنة' : 'DD/MM/YYYY'" />
+        </div>
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الحالة' : 'Status' }}</label>
+          <select class="w-full px-4 py-2 rounded bg-white text-black border border-white/20" [(ngModel)]="attendAccept" name="attendAccept">
+            <option value="true">{{ isRtl ? 'حاضر' : 'Present' }}</option>
+            <option value="false">{{ isRtl ? 'غائب' : 'Absent' }}</option>
+          </select>
+        </div>
+        <div class="col-span-12 grid place-items-center">
+          <button type="submit" class="rounded-full academy-button px-8 py-3 w-full sm:w-2/3 md:w-1/2 lg:w-1/3 text-lg font-semibold shadow-lg shadow-black/20 mx-auto">{{ isRtl ? 'تسجيل' : 'Record' }}</button>
+        </div>
+      </div>
+    </form>
 
-    <div *ngIf="!loading && !error" class="content">
-      <div class="info-card">
-        <h2>{{ 'attendance_management' | t }}</h2>
-        <p>{{ 'attendance_placeholder' | t }}</p>
+    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6">
+      <div *ngIf="loading" class="text-center text-white/90 py-16">{{ isRtl ? 'جاري التحميل...' : 'Loading...' }}</div>
+      <div *ngIf="!loading && recordsToShow.length === 0" class="text-center text-white/80 py-16">
+        {{ studentId ? (isRtl ? 'لا توجد سجلات لهذا الطالب' : 'No records for this student') : (isRtl ? 'لا توجد سجلات' : 'No records') }}
+      </div>
+      <div *ngIf="!loading && recordsToShow.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div *ngFor="let r of recordsToShow" class="p-4 rounded-xl border" [ngClass]="r.attendAccept ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'">
+          <div class="flex items-center justify-between">
+            <div class="text-white font-semibold">{{ r.attendAccept ? (isRtl ? 'حاضر' : 'Present') : (isRtl ? 'غائب' : 'Absent') }}</div>
+            <div class="text-white/70 text-sm">{{ r.dateAttend ? (r.dateAttend | date: (isRtl ? 'dd/MM/yyyy' : 'MM/dd/yyyy')) : '' }}</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
+

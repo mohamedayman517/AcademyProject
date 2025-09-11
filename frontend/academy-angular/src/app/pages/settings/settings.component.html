@@ -1,0 +1,148 @@
+<!-- Loading State -->
+<section *ngIf="false" class="relative isolate overflow-hidden">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/55"></div>
+  <div class="flex items-center justify-center min-h-screen relative z-10">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      <p class="text-white/90">{{ isRtl ? 'جاري التحميل...' : 'Loading...' }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- Main Settings Content -->
+<section class="relative isolate overflow-hidden">
+  <div class="absolute inset-0 -z-10 animated-gradient opacity-90"></div>
+  <div class="absolute inset-0 z-0 bg-black/50"></div>
+
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20 relative z-10" [dir]="isRtl ? 'rtl' : 'ltr'">
+    <div class="animate-fade-in-up">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-3">{{ translations.title }}</h1>
+      <p class="text-white/90 mb-6">{{ translations.subtitle }}</p>
+
+      <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 sm:p-8 space-y-6">
+        <!-- Language -->
+        <div>
+          <h2 class="text-xl font-semibold text-white mb-2">{{ translations.language.title }}</h2>
+          <p class="text-sm text-white/70 mb-3">{{ translations.language.description }}</p>
+          <div class="max-w-xs">
+            <select 
+              [value]="currentLanguage" 
+              (change)="onLanguageChange($event.target.value)"
+              class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="en">{{ translations.language.en }}</option>
+              <option value="ar">{{ translations.language.ar }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="border-t border-white/20"></div>
+
+        <!-- Site preferences -->
+        <div class="space-y-4">
+          <h2 class="text-xl font-semibold text-white">{{ translations.site.title }}</h2>
+          <p class="text-sm text-white/70">{{ translations.site.subtitle }}</p>
+
+          <div class="flex items-start justify-between gap-4 py-2">
+            <div>
+              <div class="text-white font-medium">{{ translations.site.reduceMotionLabel }}</div>
+              <div class="text-sm text-white/70">{{ translations.site.reduceMotionDesc }}</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                [checked]="reduceMotion" 
+                (change)="onReduceMotionChange($event.target.checked)"
+                class="sr-only peer"
+              >
+              <div class="w-11 h-6 bg-white/20 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div class="flex items-start justify-between gap-4 py-2">
+            <div>
+              <div class="text-white font-medium">{{ translations.site.compactLayoutLabel }}</div>
+              <div class="text-sm text-white/70">{{ translations.site.compactLayoutDesc }}</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                [checked]="compactLayout" 
+                (change)="onCompactLayoutChange($event.target.checked)"
+                class="sr-only peer"
+              >
+              <div class="w-11 h-6 bg-white/20 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="border-t border-white/20"></div>
+
+        <!-- Admin Panel link - visible to admins only -->
+        <div *ngIf="isAdmin" class="flex items-center justify-between px-3 py-3 rounded-lg border border-white/20 bg-white/5">
+          <div class="flex items-center gap-2">
+            <svg class="h-5 w-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <div class="text-white font-medium">{{ translations.adminPanel }}</div>
+          </div>
+          <button 
+            (click)="navigateToAdmin()" 
+            class="text-blue-400 hover:underline text-sm hover:text-blue-300 transition-colors"
+          >
+            {{ translations.open }}
+          </button>
+        </div>
+
+        <div *ngIf="isAdmin" class="border-t border-white/20"></div>
+
+        <!-- Account link inside settings -->
+        <div class="flex items-center justify-between px-3 py-3 rounded-lg border border-white/20 bg-white/5">
+          <div class="flex items-center gap-2">
+            <svg class="h-5 w-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <div class="text-white font-medium">{{ translations.myAccount }}</div>
+          </div>
+          <button 
+            (click)="navigateToAccount()" 
+            class="text-blue-400 hover:underline text-sm hover:text-blue-300 transition-colors"
+          >
+            {{ translations.open }}
+          </button>
+        </div>
+
+        <div class="border-t border-white/20"></div>
+
+        <!-- Help link inside settings -->
+        <div class="flex items-center justify-between px-3 py-3 rounded-lg border border-white/20 bg-white/5">
+          <div class="flex items-center gap-2">
+            <svg class="h-5 w-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="text-white font-medium">{{ translations.help }}</div>
+          </div>
+          <button 
+            (click)="navigateToHelp()" 
+            class="text-blue-400 hover:underline text-sm hover:text-blue-300 transition-colors"
+          >
+            {{ translations.open }}
+          </button>
+        </div>
+
+        <div class="border-t border-white/20"></div>
+
+        <div>
+          <button 
+            (click)="reset()" 
+            class="px-4 py-2 rounded-md border border-white/20 hover:bg-white/10 text-white text-sm transition-colors"
+          >
+            {{ translations.reset }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
