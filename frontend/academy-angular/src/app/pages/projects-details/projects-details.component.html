@@ -40,7 +40,7 @@
               <td class="p-2 description-cell">{{ r.description || r.Description }}</td>
               <td class="p-2 actions-cell">
                 <div class="flex gap-2 actions-group">
-                  <button class="btn-xs bg-green-600 hover:bg-green-700 text-white" [routerLink]="['/projects', (r.projectsMasterId || r.ProjectsMasterId || r.id || r.Id)]">عرض</button>
+                  <button class="btn-xs bg-green-600 hover:bg-green-700 text-white" (click)="viewProject(r)">عرض</button>
                   <ng-container *ngIf="isAdmin">
                     <button class="btn-xs" (click)="openEditForm(r)">تعديل</button>
                     <button class="btn-xs" (click)="delete(r)">حذف</button>

@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { combineLatest, Subscription } from 'rxjs';
@@ -26,7 +27,7 @@ export class ProgramsComponent implements OnInit, OnDestroy {
     programMasterId: ''
   };
 
-  constructor(private api: ApiService, private auth: AuthService) {}
+  constructor(private api: ApiService, private auth: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     const s = combineLatest([this.auth.isAuthenticated$, this.auth.roles$]).subscribe(([isAuth, roles]) => {
@@ -52,19 +53,25 @@ export class ProgramsComponent implements OnInit, OnDestroy {
         const arr = Array.isArray(res)
           ? res
           : (res?.items || res?.data || res?.result || res?.programs || []);
-        this.programs = (Array.isArray(arr) ? arr : []).map((p: any) => ({
-          id: p.id || p.programId || p.uid,
-          title: p.programNameL1 || p.programNameL2 || p.title || p.name || p.programName || p.programTitle || 'برنامج بدون عنوان',
-          description: p.description || p.summary || p.programDescription || '',
-          level: p.level || p.skillLevel || 'غير محدد',
-          imageUrl: p.imageUrl || p.thumbnail || null,
-          programMasterId:
-            p.programsContentMasterId ||
-            p.ProgramsContentMasterId ||
-            (p.programsContentMaster && (p.programsContentMaster.id || p.programsContentMaster.masterId)) ||
-            (p.contentMaster && (p.contentMaster.id || p.contentMaster.masterId)) ||
-            p.masterId || p.contentMasterId || ''
-        }));
+        this.programs = (Array.isArray(arr) ? arr : []).map((p: any) => {
+          const mappedProgram = {
+            id: p.id || p.programId || p.uid,
+            title: p.programNameL1 || p.title || p.name || p.programName || p.programTitle || 'برنامج بدون عنوان',
+            programNameL1: p.programNameL1 || p.title || p.name || p.programName || p.programTitle || 'برنامج بدون عنوان',
+            programNameL2: p.programNameL2 || p.titleEn || p.nameEn || '',
+            description: p.description || p.summary || p.programDescription || '',
+            level: p.level || p.skillLevel || 'غير محدد',
+            imageUrl: p.imageUrl || p.thumbnail || null,
+            programMasterId:
+              p.programsContentMasterId ||
+              p.ProgramsContentMasterId ||
+              (p.programsContentMaster && (p.programsContentMaster.id || p.programsContentMaster.masterId)) ||
+              (p.contentMaster && (p.contentMaster.id || p.contentMaster.masterId)) ||
+              p.masterId || p.contentMasterId || ''
+          };
+          console.log('Mapped program:', mappedProgram);
+          return mappedProgram;
+        });
 
         // Fallback: if ProgramsDetail yields no items, use ProgramsContentMaster
         if (!this.programs.length) {
@@ -75,6 +82,8 @@ export class ProgramsComponent implements OnInit, OnDestroy {
               this.programs = (Array.isArray(arr2) ? arr2 : []).map((x: any) => ({
                 id: x.id || x.masterId || x.contentId || x.uid,
                 title: x.sessionNameL1 || x.sessionNameL2 || x.title || 'برنامج/جلسة',
+                programNameL1: x.sessionNameL1 || x.title || 'برنامج/جلسة',
+                programNameL2: x.sessionNameL2 || '',
                 description: x.description || '',
                 level: x.level || 'غير محدد',
                 imageUrl: x.imageUrl || null,
@@ -96,6 +105,8 @@ export class ProgramsComponent implements OnInit, OnDestroy {
             this.programs = (Array.isArray(arr2) ? arr2 : []).map((x: any) => ({
               id: x.id || x.masterId || x.contentId || x.uid,
               title: x.sessionNameL1 || x.sessionNameL2 || x.title || 'برنامج/جلسة',
+              programNameL1: x.sessionNameL1 || x.title || 'برنامج/جلسة',
+              programNameL2: x.sessionNameL2 || '',
               description: x.description || '',
               level: x.level || 'غير محدد',
               imageUrl: x.imageUrl || null,
@@ -146,8 +157,8 @@ export class ProgramsComponent implements OnInit, OnDestroy {
     this.editingProgram = program;
     this.showAddForm = true;
     this.newProgram = {
-      programNameL1: program.title || '',
-      programNameL2: program.title || '',
+      programNameL1: program.programNameL1 || program.title || '',
+      programNameL2: program.programNameL2 || '',
       description: program.description || '',
       level: program.level || '',
       imageUrl: program.imageUrl || '',
@@ -283,6 +294,14 @@ export class ProgramsComponent implements OnInit, OnDestroy {
       if (pick && pick.id) {
         this.newProgram.programMasterId = pick.id;
       }
+    }
+  }
+
+  viewProgramDetails(program: any): void {
+    if (program && program.id) {
+      this.router.navigate(['/programs', program.id]);
+    } else {
+      console.error('Program ID not found:', program);
     }
   }
 }

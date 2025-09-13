@@ -199,7 +199,7 @@ export class ProjectsComponent implements OnInit {
 
   startProject(p: ProjectCard): void {
     const id = p.id || p.projectId;
-    if (id) this.router.navigate(['/project-details', id]);
+    if (id) this.router.navigate(['/projects', id]);
   }
 
   onPreview(p: ProjectCard): void {

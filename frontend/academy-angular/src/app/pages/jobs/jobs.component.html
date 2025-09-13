@@ -76,64 +76,27 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"></path></svg>
+              <!-- عرض المعلومات المتاحة فقط من API -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" *ngIf="job.jobNameL2 || job.academyName || job.branchName">
+                <div class="flex items-center gap-2" *ngIf="job.jobNameL2">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
                   <div>
-                    <p class="text-white/50 text-xs">{{ isRtl ? 'الخبرة' : 'Experience' }}</p>
-                    <p class="text-white font-medium">{{ job.experience }}</p>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'الاسم بالإنجليزية' : 'English Name' }}</p>
+                    <p class="text-white font-medium">{{ job.jobNameL2 }}</p>
                   </div>
                 </div>
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path></svg>
+                <div class="flex items-center gap-2" *ngIf="job.academyName">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                   <div>
-                    <p class="text-white/50 text-xs">{{ isRtl ? 'المستوى' : 'Level' }}</p>
-                    <p class="text-white font-medium">{{ job.level }}</p>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'الأكاديمية' : 'Academy' }}</p>
+                    <p class="text-white font-medium">{{ job.academyName }}</p>
                   </div>
                 </div>
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 12 17.657 7.757 16.243 6.343 12 10.586 7.757 6.343 6.343 7.757 10.586 12 6.343 16.243 7.757 17.657 12 13.414 16.243 17.657z"></path></svg>
+                <div class="flex items-center gap-2" *ngIf="job.branchName">
+                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 12l4.243-4.243a1.5 1.5 0 000-2.121L12 1.414 7.757 5.657a1.5 1.5 0 000 2.121L12 12l-4.243 4.243a1.5 1.5 0 000 2.121L12 22.586l4.243-4.243a1.5 1.5 0 000-2.121z"></path></svg>
                   <div>
-                    <p class="text-white/50 text-xs">{{ isRtl ? 'المؤهل' : 'Qualification' }}</p>
-                    <p class="text-white font-medium">{{ job.qualification }}</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"></path></svg>
-                  <div>
-                    <p class="text-white/50 text-xs">{{ isRtl ? 'الفئة' : 'Category' }}</p>
-                    <p class="text-white font-medium">{{ job.jobCategory || job.category }}</p>
-                  </div>
-                </div>
-    </div>
-
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657A8 8 0 118 6.343 8 8 0 0117.657 16.657z"></path></svg>
-                  <div>
-                    <p class="text-white/50 text-xs">{{ isRtl ? 'الموقع' : 'Location' }}</p>
-                    <p class="text-white font-medium">{{ job.location }}</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4 0 2.21 1.79 4 4 4 2.21 0 4-1.79 4-4 0-2.21-1.79-4-4-4z"></path></svg>
-                  <div>
-                    <p class="text-white/50 text-xs">{{ isRtl ? 'الراتب' : 'Salary' }}</p>
-                    <p class="text-white font-medium">{{ job.salary }}</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2"></path></svg>
-                  <div>
-                    <p class="text-white/50 text-xs">{{ isRtl ? 'نوع العمل' : 'Job Type' }}</p>
-                    <p class="text-white font-medium">{{ job.type }}</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                  <div>
-                    <p class="text-white/50 text-xs">{{ isRtl ? 'تاريخ النشر' : 'Posted' }}</p>
-                    <p class="text-white font-medium">{{ job.postedDate }}</p>
+                    <p class="text-white/50 text-xs">{{ isRtl ? 'الفرع' : 'Branch' }}</p>
+                    <p class="text-white font-medium">{{ job.branchName }}</p>
                   </div>
                 </div>
               </div>
@@ -185,25 +148,37 @@
     <div *ngIf="viewMode && selectedJob" class="space-y-3">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
+          <div class="text-sm text-gray-500">{{ isRtl ? 'رقم الوظيفة' : 'Job Number' }}</div>
+          <div class="mt-1">{{ selectedJob.jobNo || (isRtl ? 'غير محدد' : 'Not specified') }}</div>
+        </div>
+        <div>
           <div class="text-sm text-gray-500">{{ isRtl ? 'الوظيفة' : 'Job' }}</div>
-          <div class="mt-1">{{ selectedJob.jobNameL1 }}</div>
+          <div class="mt-1">{{ selectedJob.jobNameL1 || (isRtl ? 'غير محدد' : 'Not specified') }}</div>
         </div>
         <div>
           <div class="text-sm text-gray-500">{{ isRtl ? 'الوظيفة (EN)' : 'Job (EN)' }}</div>
-          <div class="mt-1">{{ selectedJob.jobNameL2 }}</div>
+          <div class="mt-1">{{ selectedJob.jobNameL2 || (isRtl ? 'غير محدد' : 'Not specified') }}</div>
         </div>
-        <div>
-          <div class="text-sm text-gray-500">{{ isRtl ? 'الفئة' : 'Category' }}</div>
-          <div class="mt-1">{{ selectedJob.jobCategory }}</div>
+        <div *ngIf="selectedJob.academyName">
+          <div class="text-sm text-gray-500">{{ isRtl ? 'الأكاديمية' : 'Academy' }}</div>
+          <div class="mt-1">{{ selectedJob.academyName }}</div>
         </div>
-        <div>
-          <div class="text-sm text-gray-500">{{ isRtl ? 'الموقع' : 'Location' }}</div>
-          <div class="mt-1">{{ selectedJob.location }}</div>
+        <div *ngIf="selectedJob.branchName">
+          <div class="text-sm text-gray-500">{{ isRtl ? 'الفرع' : 'Branch' }}</div>
+          <div class="mt-1">{{ selectedJob.branchName }}</div>
         </div>
       </div>
-      <div>
+      <div *ngIf="selectedJob.description">
         <div class="text-sm text-gray-500">{{ isRtl ? 'الوصف' : 'Description' }}</div>
         <div class="mt-1 whitespace-pre-wrap">{{ selectedJob.description }}</div>
+      </div>
+      <div *ngIf="selectedJob.jobLink">
+        <div class="text-sm text-gray-500">{{ isRtl ? 'رابط التقديم' : 'Application Link' }}</div>
+        <div class="mt-1">
+          <a [href]="selectedJob.jobLink" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">
+            {{ selectedJob.jobLink }}
+          </a>
+        </div>
       </div>
       <div class="flex justify-end">
         <button class="px-4 py-2 rounded-md border" (click)="closeForm()">{{ isRtl ? 'إغلاق' : 'Close' }}</button>
@@ -227,54 +202,9 @@
         <textarea class="w-full border rounded-md px-3 py-2" rows="4" [(ngModel)]="jobForm.Description" name="Description" required maxlength="500" placeholder="{{ isRtl ? 'أدخل وصف الوظيفة' : 'Enter job description' }}"></textarea>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'رابط التقديم' : 'Application Link' }}</label>
-          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.JobLink" name="JobLink" placeholder="{{ isRtl ? 'أدخل رابط التقديم' : 'Enter application link' }}" type="url" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'الخبرة المطلوبة' : 'Experience Required' }}</label>
-          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Experience" name="Experience" placeholder="{{ isRtl ? '' : 'Example: 2-4 years' }}" />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'المستوى' : 'Level' }}</label>
-          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Level" name="Level" placeholder="{{ isRtl ? '' : 'Example: Junior, Mid, Senior' }}" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'المؤهل المطلوب' : 'Required Qualification' }}</label>
-          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Qualification" name="Qualification" placeholder="{{ isRtl ? '' : 'Enter required qualification' }}" />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'فئة الوظيفة' : 'Job Category' }}</label>
-          <select class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.JobCategory" name="JobCategory">
-            <option value="">{{ isRtl ? 'اختر الفئة' : 'Select category' }}</option>
-            <option value="Graphic Designer">Graphic Designer</option>
-            <option value="Network Engineer">Network Engineer</option>
-            <option value="Web Designer">Web Designer</option>
-            <option value="Digital Marketer">Digital Marketer</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'الموقع' : 'Location' }}</label>
-          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Location" name="Location" placeholder="{{ isRtl ? '' : 'Enter job location' }}" />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'الراتب' : 'Salary' }}</label>
-          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Salary" name="Salary" placeholder="{{ isRtl ? '' : 'Enter salary range' }}" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">{{ isRtl ? 'نوع العمل' : 'Job Type' }}</label>
-          <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.Type" name="Type" placeholder="{{ isRtl ? '' : 'Example: Full-time, Part-time' }}" />
-        </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ isRtl ? 'رابط التقديم' : 'Application Link' }}</label>
+        <input class="w-full border rounded-md px-3 py-2" [(ngModel)]="jobForm.JobLink" name="JobLink" placeholder="{{ isRtl ? 'أدخل رابط التقديم' : 'Enter application link' }}" type="url" />
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -294,10 +224,6 @@
         </div>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium mb-1">{{ isRtl ? 'المتطلبات' : 'Requirements' }}</label>
-        <textarea class="w-full border rounded-md px-3 py-2" rows="4" [(ngModel)]="jobForm.Requirements" name="Requirements" placeholder="{{ isRtl ? 'أدخل المتطلبات (سطر واحد لكل متطلب)' : 'Enter requirements (one per line)' }}"></textarea>
-      </div>
 
       <div class="flex justify-end gap-2">
         <div *ngIf="error" class="text-red-600 text-sm mr-auto">{{ error }}</div>

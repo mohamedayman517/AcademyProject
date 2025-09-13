@@ -15,84 +15,149 @@
       <p class="opacity-90">{{ isRtl ? 'تحرير بيانات المدرب كما في API' : 'Edit trainer data as per API' }}</p>
       <p class="mt-2 opacity-80">ID: {{ trainerId }}</p>
       <div class="mt-4" *ngIf="loading">{{ isRtl ? 'جاري التحميل...' : 'Loading...' }}</div>
-      <div class="mt-4 text-red-300" *ngIf="!loading && error">{{ error }}</div>
-      <div class="mt-4 text-emerald-300" *ngIf="!loading && success">{{ isRtl ? 'تم الحفظ بنجاح' : 'Saved successfully' }}</div>
+      <div class="mt-4 p-4 bg-red-500/20 border border-red-500/30 rounded-lg" *ngIf="!loading && error">
+        <div class="flex items-center gap-2 text-red-300">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+          <span class="font-medium">{{ error }}</span>
+        </div>
+        <div class="mt-2 text-sm text-red-200" *ngIf="error && error.includes('login')">
+          {{ isRtl ? 'يرجى تسجيل الدخول أولاً للوصول إلى هذه الصفحة' : 'Please login first to access this page' }}
+          <button (click)="goToLogin()" class="ml-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-full transition-colors">
+            {{ isRtl ? 'تسجيل الدخول' : 'Login' }}
+          </button>
+        </div>
+      </div>
+      <div class="mt-4 p-4 bg-emerald-500/20 border border-emerald-500/30 rounded-lg" *ngIf="!loading && success">
+        <div class="flex items-center gap-2 text-emerald-300">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span class="font-medium">{{ isRtl ? 'تم الحفظ بنجاح' : 'Saved successfully' }}</span>
+        </div>
+      </div>
 
       <form class="grid grid-cols-1 gap-4 mt-4" *ngIf="!loading" (ngSubmit)="save()">
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'الاسم (عربي)' : 'Name (L1)' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherNameL1" name="TeacherNameL1" required />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'الاسم (عربي) *' : 'Name (L1) *' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="form.TeacherNameL1" name="TeacherNameL1" required />
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'الاسم (إنجليزي)' : 'Name (L2)' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherNameL2" name="TeacherNameL2" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'الاسم (إنجليزي)' : 'Name (L2)' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="form.TeacherNameL2" name="TeacherNameL2" />
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'العنوان' : 'Address' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherAddress" name="TeacherAddress" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'العنوان *' : 'Address *' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="form.TeacherAddress" name="TeacherAddress" required />
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'الهوية' : 'National ID' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.NationalId" name="NationalId" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'الهوية *' : 'National ID *' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="form.NationalId" name="NationalId" required />
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'تاريخ البدء' : 'Start Date' }}</label>
-          <input type="date" class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.DateStart" name="DateStart" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'تاريخ البدء' : 'Start Date' }}</label>
+          <input type="date" class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="form.DateStart" name="DateStart" />
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'الجوال' : 'Mobile' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherMobile" name="TeacherMobile" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'الجوال' : 'Mobile' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="form.TeacherMobile" name="TeacherMobile" />
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'الهاتف' : 'Phone' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherPhone" name="TeacherPhone" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'الهاتف' : 'Phone' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="form.TeacherPhone" name="TeacherPhone" />
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'واتساب' : 'Whatsapp' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherWhatsapp" name="TeacherWhatsapp" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'واتساب *' : 'Whatsapp *' }}</label>
+          <input class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="form.TeacherWhatsapp" name="TeacherWhatsapp" required />
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'البريد الإلكتروني' : 'Email' }}</label>
-          <input type="email" class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherEmail" name="TeacherEmail" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'البريد الإلكتروني *' : 'Email *' }}</label>
+          <input type="email" class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="form.TeacherEmail" name="TeacherEmail" required />
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'الوصف' : 'Description' }}</label>
-          <textarea rows="3" class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.Description" name="Description"></textarea>
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'نوع المدرب' : 'Trainer Type' }}</label>
+          <select class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="descriptionFields.trainerType" name="trainerType">
+            <option value="">{{ isRtl ? 'اختر نوع المدرب' : 'Select Trainer Type' }}</option>
+            <option value="softSkills">{{ isRtl ? 'المهارات الناعمة' : 'Soft Skills' }}</option>
+            <option value="technical">{{ isRtl ? 'تقني' : 'Technical' }}</option>
+            <option value="freelancer">{{ isRtl ? 'مستقل' : 'Freelancer' }}</option>
+            <option value="english">{{ isRtl ? 'إنجليزي' : 'English' }}</option>
+          </select>
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'تاريخ الإلغاء' : 'Cancel Date' }}</label>
-          <input type="date" class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.TeacherCancel" name="TeacherCancel" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'الوصف' : 'Description' }}</label>
+          <textarea rows="3" class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none" [(ngModel)]="descriptionFields.description" name="description" placeholder="{{ isRtl ? 'اكتب وصف المدرب هنا...' : 'Write trainer description here...' }}"></textarea>
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'رابط السيرة الذاتية' : 'CV Link' }}</label>
+          <input type="url" class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="descriptionFields.cv" name="cv" placeholder="{{ isRtl ? 'https://example.com/cv' : 'https://example.com/cv' }}" />
+        </div>
+        <div class="grid gap-2">
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'تاريخ الإلغاء' : 'Cancel Date' }}</label>
+          <input type="date" class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" [(ngModel)]="form.TeacherCancel" name="TeacherCancel" />
         </div>
 
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'الأكاديمية' : 'Academy' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.AcademyDataId" name="AcademyDataId" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'الأكاديمية' : 'Academy' }}</label>
+          <select class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" 
+                  [(ngModel)]="form.AcademyDataId" 
+                  name="AcademyDataId"
+                  (change)="onAcademyChange($event.target.value)">
+            <option value="">{{ isRtl ? 'اختر الأكاديمية' : 'Select Academy' }}</option>
+            <option *ngFor="let academy of academies" [value]="academy.id || academy.Id">
+              {{ pick(academy.academyNameL1, academy.AcademyNameL1, academy.name, academy.Name) }}
+            </option>
+          </select>
+          <div *ngIf="academyName" class="text-sm text-white/70 mt-1">
+            {{ isRtl ? 'الأكاديمية المحددة:' : 'Selected Academy:' }} {{ academyName }}
+          </div>
+          <div *ngIf="academies.length === 0 && !loading" class="text-sm text-yellow-300 mt-1 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            {{ isRtl ? 'لا يمكن تحميل قائمة الأكاديميات' : 'Cannot load academies list' }}
+          </div>
         </div>
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'الفرع' : 'Branch' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.BranchesDataId" name="BranchesDataId" />
-        </div>
-        <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'الدولة' : 'Country' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.CountryCodeId" name="CountryCodeId" />
-        </div>
-        <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'المحافظة' : 'Governorate' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.GovernorateCodeId" name="GovernorateCodeId" />
-        </div>
-        <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'المدينة' : 'City' }}</label>
-          <input class="rounded-lg px-3 py-2 text-black" [(ngModel)]="form.CityCodeId" name="CityCodeId" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'الفرع' : 'Branch' }}</label>
+          <select class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" 
+                  [(ngModel)]="form.BranchesDataId" 
+                  name="BranchesDataId"
+                  (change)="onBranchChange($event.target.value)">
+            <option value="">{{ isRtl ? 'اختر الفرع' : 'Select Branch' }}</option>
+            <option *ngFor="let branch of branches" [value]="branch.id || branch.Id">
+              {{ pick(branch.branchNameL1, branch.BranchNameL1, branch.name, branch.Name) }}
+            </option>
+          </select>
+          <div *ngIf="branchName" class="text-sm text-white/70 mt-1">
+            {{ isRtl ? 'الفرع المحدد:' : 'Selected Branch:' }} {{ branchName }}
+          </div>
+          <div *ngIf="branches.length === 0 && !loading" class="text-sm text-yellow-300 mt-1 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            {{ isRtl ? 'لا يمكن تحميل قائمة الفروع' : 'Cannot load branches list' }}
+          </div>
         </div>
 
         <div class="grid gap-2">
-          <label class="opacity-90">{{ isRtl ? 'صورة' : 'Image' }}</label>
-          <input type="file" accept="image/*" (change)="onFileChange($event)" class="rounded-lg px-3 py-2 text-black bg-white" />
-          <img *ngIf="imagePreviewUrl" [src]="imagePreviewUrl" class="mt-2 max-h-40 rounded-lg border border-white/20" />
+          <label class="opacity-90 text-white font-medium">{{ isRtl ? 'صورة' : 'Image' }}</label>
+          <input type="file" accept="image/*" (change)="onFileChange($event)" class="rounded-lg px-3 py-2 text-black bg-white border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" />
+          <img *ngIf="imagePreviewUrl" [src]="imagePreviewUrl" class="mt-2 max-h-40 rounded-lg border border-white/20 shadow-lg" />
         </div>
 
-        <div class="mt-4">
-          <button class="px-4 py-2 rounded-full bg-white/90 text-black hover:bg-white" type="submit" [disabled]="saving">{{ isRtl ? 'حفظ' : 'Save' }}</button>
+        <div class="mt-6 flex justify-center">
+          <button class="px-6 py-3 rounded-full bg-white text-black hover:bg-gray-100 font-medium shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" type="submit" [disabled]="saving">
+            <span *ngIf="!saving">{{ isRtl ? 'حفظ التغييرات' : 'Save Changes' }}</span>
+            <span *ngIf="saving" class="flex items-center gap-2">
+              <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ isRtl ? 'جارٍ الحفظ...' : 'Saving...' }}
+            </span>
+          </button>
         </div>
       </form>
     </div>

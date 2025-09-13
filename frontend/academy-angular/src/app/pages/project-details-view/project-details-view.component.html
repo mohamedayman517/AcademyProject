@@ -1,0 +1,125 @@
+<section class="project-details-container" dir="rtl">
+  <div class="animated-gradient"></div>
+  <div class="bg-black/55"></div>
+  <!-- Header with Back Button -->
+  <div class="header-section">
+    <button class="back-button" (click)="goBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      العودة إلى القائمة
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>جاري تحميل تفاصيل المشروع...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h3>حدث خطأ في تحميل المشروع</h3>
+    <p>{{ error }}</p>
+    <button class="retry-button" (click)="retryFetch()">إعادة المحاولة</button>
+  </div>
+
+  <!-- Project Details Content -->
+  <div *ngIf="!loading && !error && project" class="project-content">
+    <!-- Project Title -->
+    <div class="project-title-section">
+      <h1 class="project-title">{{ project.title }}</h1>
+      <div class="project-subtitle">{{ project.projectNameL2 || 'Web Application Development' }}</div>
+    </div>
+
+    <!-- Project Description -->
+    <div class="info-card">
+      <h2 class="card-title">وصف المشروع</h2>
+      <p class="project-description">{{ project.description }}</p>
+    </div>
+
+    <!-- Timeline Section -->
+    <div class="info-card">
+      <h2 class="card-title">الجدول الزمني</h2>
+      <div class="timeline-grid">
+        <div class="timeline-item">
+          <label>تاريخ البداية</label>
+          <span class="timeline-value">{{ formatDate(project.projectStart) }}</span>
+        </div>
+        <div class="timeline-item">
+          <label>تاريخ النهاية</label>
+          <span class="timeline-value">{{ formatDate(project.projectEnd) }}</span>
+        </div>
+        <div class="timeline-item">
+          <label>المدة الإجمالية</label>
+          <span class="timeline-value">{{ getDuration() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sessions Section -->
+    <div class="info-card">
+      <h2 class="card-title">الجلسات</h2>
+      <div class="sessions-grid">
+        <div class="session-item">
+          <label>بداية الجلسات</label>
+          <span class="session-value">{{ formatDate(project.projectStart) }}</span>
+        </div>
+        <div class="session-item">
+          <label>نهاية الجلسات</label>
+          <span class="session-value">{{ formatDate(project.projectEnd) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Branch Information -->
+    <div class="info-card">
+      <h2 class="card-title">معلومات الفرع</h2>
+      <div class="branch-info">
+        <label>الفرع</label>
+        <span class="branch-value">{{ project.branch || 'غير محدد' }}</span>
+      </div>
+    </div>
+
+    <!-- Project Status -->
+    <div class="info-card">
+      <h2 class="card-title">حالة المشروع</h2>
+      <div class="status-container">
+        <span class="status-badge active">{{ project.status || 'نشط' }}</span>
+        <p class="status-description">المشروع جاهز للبدء والعمل عليه</p>
+      </div>
+    </div>
+
+    <!-- Student Files Section -->
+    <div class="info-card">
+      <h2 class="card-title">ملفات الطالب</h2>
+      <div class="files-section">
+        <div class="file-item">
+          <div class="file-info">
+            <h3>ملف المشروع</h3>
+            <p>تحميل الملف الرئيسي للمشروع</p>
+          </div>
+          <button class="download-button" (click)="downloadProjectFile()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            تحميل
+          </button>
+        </div>
+        <div class="file-item">
+          <div class="file-info">
+            <h3>الموارد التعليمية</h3>
+            <p>المواد المساندة والمراجع</p>
+          </div>
+          <button class="download-button" (click)="downloadResources()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            تحميل
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

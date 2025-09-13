@@ -23,6 +23,14 @@ export class TrainersComponent implements OnInit, OnDestroy {
   loadingAcademies = false;
   private subs: Subscription[] = [];
 
+  // Training Type categories
+  trainingTypeCategories = [
+    { id: 'softSkills', nameAr: 'المهارات الناعمة', nameEn: 'Soft Skills', color: 'bg-purple-500', count: 0 },
+    { id: 'technical', nameAr: 'تقني', nameEn: 'Technical', color: 'bg-blue-500', count: 0 },
+    { id: 'freelancer', nameAr: 'مستقل', nameEn: 'Freelancer', color: 'bg-green-500', count: 0 },
+    { id: 'english', nameAr: 'إنجليزي', nameEn: 'English', color: 'bg-orange-500', count: 0 },
+  ];
+
   // Delete dialog state
   showDeleteDialog = false;
   trainerToDelete: any = null;
@@ -78,7 +86,7 @@ export class TrainersComponent implements OnInit, OnDestroy {
 
   private syncRouteState(): void {
     const path = window.location.pathname;
-    if (path.includes('/trainers/soft-skills')) this.selectedCategory = 'softSkill';
+    if (path.includes('/trainers/soft-skills')) this.selectedCategory = 'softSkills';
     else if (path.includes('/trainers/technical')) this.selectedCategory = 'technical';
     else if (path.includes('/trainers/freelancer')) this.selectedCategory = 'freelancer';
     else if (path.includes('/trainers/english')) this.selectedCategory = 'english';
@@ -105,19 +113,11 @@ export class TrainersComponent implements OnInit, OnDestroy {
           phone: trainer.teacherMobile || trainer.TeacherMobile || trainer.teacherPhone || trainer.TeacherPhone || '',
         }));
 
-        if (this.selectedCategory) {
-          const cat = this.selectedCategory.toLowerCase();
-          this.trainers = formatted.filter((t: any) => {
-            const d = (t.description || '').toLowerCase();
-            return (
-              d.includes(`category: ${cat}`) ||
-              (cat === 'softskill' && d.includes('soft')) ||
-              d.includes(cat)
-            );
-          });
-        } else {
-          this.trainers = formatted;
-        }
+        this.trainers = formatted;
+        
+        // Update category counts after loading trainers
+        this.updateTrainingTypeCounts();
+        
         this.loading = false;
       },
       error: () => {
@@ -285,12 +285,76 @@ export class TrainersComponent implements OnInit, OnDestroy {
   }
 
   get filteredTrainers(): any[] {
+    let filtered = this.trainers;
+    
+    // Filter by search query
     const q = (this.searchQuery || '').trim().toLowerCase();
-    if (!q) return this.trainers;
-    return this.trainers.filter(t =>
-      (t.name || '').toLowerCase().includes(q) ||
-      (t.description || '').toLowerCase().includes(q)
-    );
+    if (q) {
+      filtered = filtered.filter(t =>
+        (t.name || '').toLowerCase().includes(q) ||
+        (t.description || '').toLowerCase().includes(q)
+      );
+    }
+    
+    // Filter by selected training type category
+    if (this.selectedCategory && this.selectedCategory !== 'all') {
+      filtered = filtered.filter(trainer => {
+        const trainerTrainingType = this.getTrainerTrainingType(trainer);
+        return trainerTrainingType === this.selectedCategory;
+      });
+    }
+    
+    return filtered;
+  }
+
+  selectTrainingTypeCategory(categoryId: string): void {
+    this.selectedCategory = categoryId;
+  }
+
+  // Extract training type from trainer description
+  getTrainerTrainingType(trainer: any): string {
+    const description = (trainer.description || '').toLowerCase();
+    
+    // Look for "Category: " pattern
+    const categoryMatch = description.match(/category:\s*(\w+)/);
+    if (categoryMatch) {
+      const category = categoryMatch[1].toLowerCase();
+      
+      // Map the category to our training type IDs
+      switch (category) {
+        case 'softskill':
+        case 'soft_skill':
+        case 'soft-skills':
+          return 'softSkills';
+        case 'technical':
+          return 'technical';
+        case 'freelancer':
+          return 'freelancer';
+        case 'english':
+          return 'english';
+        default:
+          return 'softSkills'; // Default fallback
+      }
+    }
+    
+    return 'softSkills'; // Default if no category found
+  }
+
+  // Update category counts based on actual trainer data
+  updateTrainingTypeCounts(): void {
+    // Reset all counts
+    this.trainingTypeCategories.forEach(category => {
+      category.count = 0;
+    });
+
+    // Count trainers for each category
+    this.trainers.forEach(trainer => {
+      const trainingType = this.getTrainerTrainingType(trainer);
+      const category = this.trainingTypeCategories.find(c => c.id === trainingType);
+      if (category) {
+        category.count++;
+      }
+    });
   }
 }
 

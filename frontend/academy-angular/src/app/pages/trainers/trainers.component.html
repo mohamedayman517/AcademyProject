@@ -18,6 +18,29 @@
       </div>
     </div>
 
+    <!-- Training Type Categories -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+      <div *ngFor="let category of trainingTypeCategories"
+           class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center cursor-pointer hover:bg-white/20 transition-all duration-300"
+           [ngClass]="{ 'ring-2': selectedCategory === category.id, 'ring-white/30': selectedCategory === category.id }"
+           (click)="selectTrainingTypeCategory(category.id)">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" [ngClass]="category.color">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-white mb-2">
+          {{ isRtl ? category.nameAr : category.nameEn }}
+        </h3>
+        <p class="text-white/70 text-sm mb-3">
+          {{ isRtl ? 'وصف مختصر للفئة' : 'Short description for the category' }}
+        </p>
+        <div class="inline-block bg-white/20 text-white px-3 py-1 rounded-full text-sm">
+          {{ category.count }} {{ isRtl ? 'مدرب' : 'trainers' }}
+        </div>
+      </div>
+    </div>
+
     <!-- Search -->
     <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-12">
       <div class="flex flex-col md:flex-row gap-4">
@@ -27,6 +50,9 @@
           </svg>
           <input type="text" [placeholder]="isRtl ? 'ابحث عن مدرب...' : 'Search for a trainer...'" [(ngModel)]="searchQuery" class="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30" />
         </div>
+        <button (click)="selectedCategory='all'" class="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105">
+          {{ isRtl ? 'عرض الكل' : 'Show All' }}
+        </button>
         <button (click)="searchQuery=''" class="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105">
           {{ isRtl ? 'مسح' : 'Clear' }}
         </button>
@@ -59,6 +85,26 @@
               </div>
               <div class="flex-1 min-w-0">
                 <h3 class="text-xl font-bold text-white truncate">{{ trainer.name }}</h3>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="inline-block px-2 py-1 rounded-full text-xs font-medium text-white" 
+                        [ngClass]="{
+                          'bg-purple-500/20': getTrainerTrainingType(trainer) === 'softSkills',
+                          'bg-blue-500/20': getTrainerTrainingType(trainer) === 'technical',
+                          'bg-green-500/20': getTrainerTrainingType(trainer) === 'freelancer',
+                          'bg-orange-500/20': getTrainerTrainingType(trainer) === 'english'
+                        }">
+                    {{ isRtl ? 
+                        (getTrainerTrainingType(trainer) === 'softSkills' ? 'المهارات الناعمة' :
+                         getTrainerTrainingType(trainer) === 'technical' ? 'تقني' :
+                         getTrainerTrainingType(trainer) === 'freelancer' ? 'مستقل' :
+                         getTrainerTrainingType(trainer) === 'english' ? 'إنجليزي' : '') :
+                        (getTrainerTrainingType(trainer) === 'softSkills' ? 'Soft Skills' :
+                         getTrainerTrainingType(trainer) === 'technical' ? 'Technical' :
+                         getTrainerTrainingType(trainer) === 'freelancer' ? 'Freelancer' :
+                         getTrainerTrainingType(trainer) === 'english' ? 'English' : '')
+                    }}
+                  </span>
+                </div>
                 <p class="text-white/60 text-sm truncate-2-lines">{{ trainer.description }}</p>
               </div>
             </div>
@@ -114,7 +160,7 @@
   <!-- Add Trainer Modal -->
   <div *ngIf="isAddOpen" class="fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/50" (click)="isAddOpen=false"></div>
-    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] max-w-3xl bg-white/95 backdrop-blur-md rounded-2xl border border-white/30 shadow-2xl p-6">
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-3xl w-full max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-md rounded-2xl border border-white/30 shadow-2xl p-6">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">{{ 'add_trainer' | t }}</h3>
         <button class="rounded-full" (click)="isAddOpen=false">✕</button>

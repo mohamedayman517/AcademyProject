@@ -124,9 +124,16 @@ export class ProjectsDetailsComponent implements OnInit, OnDestroy {
     this.api.getProjectsMaster().subscribe({
       next: (data) => {
         this.projectsMaster = Array.isArray(data) ? data : (data?.items || data?.data || []);
+        console.log('Projects master loaded:', this.projectsMaster);
+        
+        if (this.projectsMaster.length === 0) {
+          this.error = 'لا توجد مشاريع رئيسية متاحة - يرجى إضافة مشروع رئيسي أولاً';
+        }
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error loading projects master:', err);
         this.projectsMaster = [];
+        this.error = 'فشل في تحميل قائمة المشاريع الرئيسية';
       }
     });
   }
@@ -144,13 +151,23 @@ export class ProjectsDetailsComponent implements OnInit, OnDestroy {
   }
 
   openEditForm(row: any): void {
+    console.log('Editing row:', row);
     this.selectedRow = row;
+    
+    // Ensure we have a valid ProjectsMasterId
+    const projectsMasterId = row.projectsMasterId || row.ProjectsMasterId || '';
+    if (!projectsMasterId) {
+      this.error = 'لا يمكن تعديل هذا السجل - معرف المشروع الرئيسي مفقود';
+      return;
+    }
+    
     this.formModel = {
-      ProjectsMasterId: row.projectsMasterId || row.ProjectsMasterId || '',
+      ProjectsMasterId: projectsMasterId,
       ProjectNameL1: row.projectNameL1 || row.ProjectNameL1 || '',
       ProjectNameL2: row.projectNameL2 || row.ProjectNameL2 || '',
       Description: row.description || row.Description || ''
     };
+    console.log('Form model set to:', this.formModel);
     this.isFormOpen = true;
   }
 
@@ -172,35 +189,157 @@ export class ProjectsDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // clean
-    const cleaned: any = { ...this.formModel };
-    Object.keys(cleaned).forEach(k => {
-      if (cleaned[k] === '' || cleaned[k] === null || cleaned[k] === undefined) delete cleaned[k];
+    // clean and prepare data - ensure all required fields are present
+    const cleaned: any = {
+      ProjectsMasterId: this.formModel.ProjectsMasterId,
+      ProjectNameL1: this.formModel.ProjectNameL1?.trim() || '',
+      ProjectNameL2: this.formModel.ProjectNameL2?.trim() || '',
+      Description: this.formModel.Description?.trim() || ''
+    };
+
+    // Remove any undefined or null values that might cause issues
+    Object.keys(cleaned).forEach(key => {
+      if (cleaned[key] === undefined) {
+        delete cleaned[key];
+      }
     });
 
-    // when editing, do not send id fields in body
-    if (this.selectedRow) {
-      delete cleaned.id;
-      delete cleaned.Id;
+    // Ensure ProjectsMasterId is a valid string
+    if (!cleaned.ProjectsMasterId || cleaned.ProjectsMasterId === '') {
+      this.error = 'يرجى اختيار المشروع الرئيسي';
+      return;
+    }
+
+    // Convert ProjectsMasterId to string if it's a number
+    cleaned.ProjectsMasterId = String(cleaned.ProjectsMasterId);
+    
+    // Validate GUID format for ProjectsMasterId
+    const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!guidRegex.test(cleaned.ProjectsMasterId)) {
+      this.error = 'معرف المشروع الرئيسي غير صحيح - يجب أن يكون GUID صحيح';
+      return;
+    }
+
+    // Validate that ProjectsMasterId exists in the projects master list
+    const masterExists = this.projectsMaster.some(master => 
+      (master.id || master.Id) === cleaned.ProjectsMasterId
+    );
+    if (!masterExists) {
+      this.error = 'المشروع الرئيسي المحدد غير موجود في قائمة المشاريع';
+      return;
+    }
+
+    // Convert empty strings to null for optional fields only
+    if (cleaned.ProjectNameL2 === '') {
+      cleaned.ProjectNameL2 = null;
+    }
+    if (cleaned.Description === '') {
+      cleaned.Description = null;
+    }
+
+    // Ensure ProjectNameL1 is not empty
+    if (!cleaned.ProjectNameL1 || cleaned.ProjectNameL1.trim() === '') {
+      this.error = 'اسم المشروع بالعربية مطلوب';
+      return;
+    }
+
+    // Final validation - ensure all required fields are present and valid
+    const requiredFields = ['ProjectsMasterId', 'ProjectNameL1'];
+    const missingFields = requiredFields.filter(field => !cleaned[field] || cleaned[field].trim() === '');
+    
+    if (missingFields.length > 0) {
+      this.error = `الحقول التالية مطلوبة: ${missingFields.join(', ')}`;
+      return;
+    }
+
+    console.log('Sending data:', cleaned);
+    console.log('Selected row:', this.selectedRow);
+    console.log('ProjectsMasterId type:', typeof cleaned.ProjectsMasterId);
+    console.log('ProjectsMasterId value:', cleaned.ProjectsMasterId);
+    console.log('Available projects master:', this.projectsMaster.map(p => ({ id: p.id || p.Id, name: p.ProjectNameL1 || p.projectNameL1 })));
+    
+    // Create FormData for multipart/form-data as required by API
+    const formData = new FormData();
+    Object.keys(cleaned).forEach(key => {
+      if (cleaned[key] !== null && cleaned[key] !== undefined) {
+        formData.append(key, cleaned[key]);
+        console.log(`FormData - ${key}:`, cleaned[key]);
+      }
+    });
+
+    // Additional validation
+    if (!cleaned.ProjectNameL1 || cleaned.ProjectNameL1.length < 3) {
+      this.error = 'اسم المشروع بالعربية يجب أن يكون 3 أحرف على الأقل';
+      return;
     }
 
     this.isSubmitting = true;
+    this.error = null;
+
+    // Use FormData instead of cleaned object for API calls
     const op$ = this.selectedRow
-      ? this.api.updateProjectsDetail(this.selectedRow.id || this.selectedRow.Id, cleaned)
-      : this.api.createProjectsDetail(cleaned);
+      ? this.api.updateProjectsDetail(this.selectedRow.id || this.selectedRow.Id, formData)
+      : this.api.createProjectsDetail(formData);
 
     op$.subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Success response:', response);
         this.isFormOpen = false;
         this.selectedRow = null;
         this.isSubmitting = false;
+        this.error = null;
         this.loadAll();
+        alert('تم حفظ البيانات بنجاح');
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error response:', error);
+        console.error('Error details:', error?.error);
         this.isSubmitting = false;
-        this.error = 'حدث خطأ أثناء حفظ تفاصيل المشروع';
+        
+        let errorMessage = 'حدث خطأ أثناء حفظ تفاصيل المشروع';
+        
+        if (error?.error?.message) {
+          errorMessage += `: ${error.error.message}`;
+        } else if (error?.error?.title) {
+          errorMessage += `: ${error.error.title}`;
+        } else if (error?.error?.errors) {
+          // Handle validation errors
+          const validationErrors = error.error.errors;
+          const errorDetails = Object.keys(validationErrors).map(key => 
+            `${key}: ${validationErrors[key].join(', ')}`
+          ).join('; ');
+          errorMessage += `: ${errorDetails}`;
+        } else if (error?.message) {
+          errorMessage += `: ${error.message}`;
+        } else if (error?.status === 500) {
+          errorMessage += ': خطأ في الخادم (500) - يرجى التحقق من البيانات المرسلة';
+          console.log('Data sent:', cleaned);
+          console.log('FormData keys and values:');
+          Object.keys(cleaned).forEach(key => {
+            console.log(`${key}:`, cleaned[key]);
+          });
+        } else if (error?.status === 400) {
+          errorMessage += ': بيانات غير صحيحة (400) - يرجى التحقق من جميع الحقول المطلوبة';
+          console.log('Data sent:', cleaned);
+        } else if (error?.status === 404) {
+          errorMessage += ': المشروع غير موجود (404)';
+        }
+        
+        this.error = errorMessage;
+        alert(errorMessage);
       }
     });
+  }
+
+  viewProject(row: any): void {
+    const projectDetailId = row.id || row.Id;
+    if (!projectDetailId) {
+      alert('لا يمكن عرض المشروع - معرف تفاصيل المشروع مفقود');
+      return;
+    }
+
+    // الانتقال إلى صفحة عرض تفاصيل المشروع
+    this.router.navigate(['/project-details', projectDetailId]);
   }
 
   delete(row: any): void {

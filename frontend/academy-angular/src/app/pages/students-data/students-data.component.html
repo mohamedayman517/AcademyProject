@@ -11,8 +11,15 @@
         {{ isEditMode ? (isRtl ? 'تعديل بيانات الطالب' : 'Edit Student Data') : (isRtl ? 'إنشاء حساب طالب' : 'Create Student Account') }}
       </h1>
 
-      <form (ngSubmit)="onSubmit($event)" class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 grid gap-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <form (ngSubmit)="onSubmit($event)" class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 grid gap-3">
+        <!-- Student ID field (hidden by default) -->
+        <div *ngIf="isEditMode && showIdFields">
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'معرّف الطالب' : 'Student ID' }}</label>
+          <input [value]="studentId || ''" readonly class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" />
+        </div>
+
+        <!-- Basic Name Fields -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الاسم الأول' : 'First Name' }}</label>
             <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="firstName" name="firstName" required />
@@ -23,7 +30,8 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Student Name Fields -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'اسم الطالب (ع)' : 'Student Name (AR)' }}</label>
             <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="studentNameL1" name="studentNameL1" [placeholder]="isRtl ? 'مثال: أحمد محمد' : 'e.g., Ahmed Mohamed'" />
@@ -34,23 +42,35 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Contact Fields -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'البريد الإلكتروني' : 'Email' }}</label>
             <input type="email" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="email" name="email" required />
           </div>
           <div>
             <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'رقم الهاتف' : 'Phone' }}</label>
-            <input type="tel" inputmode="numeric" pattern="[0-9]*" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="phoneNumber" name="phoneNumber" required />
+            <input 
+              type="tel" 
+              inputmode="numeric" 
+              pattern="[0-9]*" 
+              class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" 
+              [(ngModel)]="phoneNumber" 
+              name="phoneNumber" 
+              (input)="onPhoneNumberInput($event)"
+              required 
+            />
           </div>
         </div>
 
+        <!-- Address -->
         <div>
           <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'العنوان' : 'Address' }}</label>
           <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="address" name="address" [placeholder]="isRtl ? 'العنوان التفصيلي' : 'Full address'" />
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" *ngIf="!isEditMode">
+        <!-- Password Fields (only for new students) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" *ngIf="!isEditMode">
           <div>
             <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الرقم السري' : 'Password' }}</label>
             <input type="password" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="password" name="password" required minlength="6" />
@@ -61,7 +81,8 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Academy and Branch Selection -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الأكاديمية' : 'Academy' }} *</label>
             <select class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="academyId" name="academyId" required>
@@ -78,15 +99,157 @@
           </div>
         </div>
 
-        <div class="flex gap-3">
-          <button type="submit" [disabled]="loading" class="rounded-full academy-button px-6 py-2">
-            {{ loading ? (isRtl ? 'جارٍ الإضافة...' : 'Adding...') : (isRtl ? 'إضافة' : 'Add') }}
-          </button>
-          <a routerLink="/students" class="rounded-full bg-transparent border border-white/30 text-white hover:bg-white/10 px-6 py-2">{{ isRtl ? 'رجوع للقائمة' : 'Back to list' }}</a>
+        <!-- Additional profile fields (codes hidden) -->
+        <div *ngIf="showCodeFields" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'كود الطالب' : 'Student Code' }}</label>
+            <input type="number" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="studentCode" name="studentCode" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الباركود' : 'Student BarCode' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="studentBarCode" name="studentBarCode" placeholder="UUID" />
+          </div>
         </div>
-        <div *ngIf="error" class="text-red-300 mt-2">{{ error }}</div>
+
+        <!-- ID Fields (hidden by default) -->
+        <div *ngIf="showIdFields" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الدولة (ID)' : 'Country ID' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="countryCodeId" name="countryCodeId" placeholder="UUID" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'المحافظة (ID)' : 'Governorate ID' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="governorateCodeId" name="governorateCodeId" placeholder="UUID" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'المدينة (ID)' : 'City ID' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="cityCodeId" name="cityCodeId" placeholder="UUID" />
+          </div>
+        </div>
+
+        <!-- Training Time -->
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'وقت التدريب' : 'Training Time' }}</label>
+          <input type="datetime-local" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="trainingTime" name="trainingTime" />
+        </div>
+
+        <!-- Training Governorate ID (hidden by default) -->
+        <div *ngIf="showIdFields">
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'محافظة التدريب (ID)' : 'Training Governorate ID' }}</label>
+          <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="trainingGovernorateId" name="trainingGovernorateId" placeholder="UUID" />
+        </div>
+
+        <!-- Recommendation Fields -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'المسار الموصى به (رقم)' : 'Recommend Track (number)' }}</label>
+            <input type="number" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="recommendTrack" name="recommendTrack" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'الوظيفة الموصى بها' : 'Recommend Job Profile' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="recommendJobProfile" name="recommendJobProfile" />
+          </div>
+        </div>
+
+        <!-- Graduation and Track -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'حالة التخرج' : 'Graduation Status' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="graduationStatus" name="graduationStatus" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'المسار' : 'Track' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="track" name="track" />
+          </div>
+        </div>
+
+        <!-- Profile Code (hidden by default) -->
+        <div *ngIf="showCodeFields">
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'كود الملف' : 'Profile Code' }}</label>
+          <input type="number" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="profileCode" name="profileCode" />
+        </div>
+
+        <!-- Academy Class Details ID (hidden by default) -->
+        <div *ngIf="showIdFields">
+          <label class="block text-sm font-medium text-white mb-1">Academy Clase Details ID</label>
+          <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="academyClaseDetailsId" name="academyClaseDetailsId" placeholder="UUID" />
+        </div>
+
+        <!-- Projects Details ID (hidden by default) -->
+        <div *ngIf="showIdFields">
+          <label class="block text-sm font-medium text-white mb-1">Projects Details ID</label>
+          <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="projectsDetailsId" name="projectsDetailsId" placeholder="UUID" />
+        </div>
+
+        <!-- Training Provider -->
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'مزود التدريب' : 'Training Provider' }}</label>
+          <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="trainingProvider" name="trainingProvider" />
+        </div>
+
+        <!-- Social Media Links -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">LinkedIn</label>
+            <input type="url" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="linkedIn" name="linkedIn" placeholder="https://..." />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">Facebook</label>
+            <input type="url" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="facebook" name="facebook" placeholder="https://..." />
+          </div>
+        </div>
+
+        <!-- Language and Certificate -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'اللغة' : 'Language' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="language" name="language" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'اسم الشهادة' : 'Certificate Name' }}</label>
+            <input class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="certificateName" name="certificateName" />
+          </div>
+        </div>
+
+        <!-- Student Contact Details -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'هاتف الطالب' : 'Student Phone' }}</label>
+            <input inputmode="numeric" pattern="[0-9]*" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="studentMobil" name="studentMobil" (input)="onStudentMobilInput($event)" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'واتساب الطالب' : 'Student Whatsapp' }}</label>
+            <input inputmode="numeric" pattern="[0-9]*" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="studentWhatsapp" name="studentWhatsapp" (input)="onStudentWhatsappInput($event)" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'بريد الطالب' : 'Student Email' }}</label>
+            <input type="email" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="studentEmail" name="studentEmail" />
+          </div>
+        </div>
+
+        <!-- Academy Email and Password -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'بريد الأكاديمية' : 'Academy Email' }}</label>
+            <input type="email" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="emailAcademy" name="emailAcademy" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white mb-1">{{ isRtl ? 'كلمة مرور البريد' : 'Email Password' }}</label>
+            <input type="password" class="w-full px-4 py-2 rounded bg-white/10 border border-white/20 text-white" [(ngModel)]="emailPassword" name="emailPassword" />
+          </div>
+        </div>
+
+        <!-- Error/Success Display -->
+        <div *ngIf="error" class="text-red-300 mt-2" [class.success]="error.includes('successfully') || error.includes('نجاح')">{{ error }}</div>
       </form>
+
+      <!-- Action Buttons - Outside the form card -->
+      <div class="action-buttons">
+        <button type="button" (click)="onSubmit($event)" [disabled]="loading" class="btn btn-primary">
+          {{ loading ? (isRtl ? 'جارٍ الإضافة...' : 'Adding...') : (isRtl ? 'إضافة' : 'Add') }}
+        </button>
+        <a routerLink="/students" class="btn btn-secondary">{{ isRtl ? 'رجوع للقائمة' : 'Back to list' }}</a>
+      </div>
     </ng-container>
   </div>
 </section>
-

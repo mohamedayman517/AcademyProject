@@ -112,8 +112,10 @@
 .projects-table td:nth-child(6){width:auto}
 
 .description-cell{white-space:normal;word-wrap:break-word;overflow-wrap:anywhere;line-height:1.4}
-.actions-cell{white-space:normal}
-.actions-group{display:inline-flex;gap:.5rem;flex-wrap:wrap}
+.actions-cell{white-space:normal;min-width:200px}
+.actions-group{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;justify-content:flex-start}
+.actions-group .btn-xs{display:inline-flex;padding:.25rem .5rem;border-radius:999px;border:1px solid rgba(255,255,255,.3);color:#fff;background:transparent;cursor:pointer;transition:all .3s ease;white-space:nowrap;min-width:auto}
+.actions-group .btn-xs:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.5)}
 
 /* Ensure no horizontal scroll on smaller screens */
 @media (max-width: 1024px){
@@ -129,7 +131,9 @@
 /* On wider screens keep actions in one line */
 @media (min-width: 1025px){
   .actions-cell{white-space:nowrap}
-  .actions-group{flex-wrap:nowrap}
+  .actions-group{display:flex;gap:.5rem;flex-wrap:nowrap;align-items:center}
+  .actions-group .btn-xs{display:inline-flex;padding:.25rem .5rem;border-radius:999px;border:1px solid rgba(255,255,255,.3);color:#fff;background:transparent;cursor:pointer;transition:all .3s ease}
+  .actions-group .btn-xs:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.5)}
 }
 
 @media (max-width: 768px) {
@@ -214,6 +218,27 @@
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+}
+
+/* Force visibility of action buttons */
+.actions-cell {
+  position: relative;
+  z-index: 10;
+}
+
+.actions-group {
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+}
+
+.actions-group .btn-xs {
+  position: relative;
+  z-index: 12;
+  pointer-events: auto;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-flex !important;
 }
 
 /* Card actions for admin */

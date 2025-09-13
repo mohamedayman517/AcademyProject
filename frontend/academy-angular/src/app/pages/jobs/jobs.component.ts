@@ -12,16 +12,10 @@ interface JobItem {
   jobNameL2: string;
   description: string;
   jobLink: string;
-  category: string;
-  experience: string;
-  level: string;
-  qualification: string;
-  jobCategory: string;
-  location: string;
-  salary: string;
-  type: string;
-  postedDate: string;
-  requirements?: string[];
+  academyDataId?: string;
+  branchesDataId?: string;
+  academyName?: string;
+  branchName?: string;
 }
 
 @Component({
@@ -134,26 +128,6 @@ export class JobsComponent implements OnInit, OnDestroy {
           ? 'نبحث عن مصمم جرافيك مبدع لانضمامه لفريقنا التعليمي لتصميم المواد البصرية والهويات البصرية للمنصات التعليمية والمواد الإعلانية'
           : 'We are looking for a creative graphic designer to join our educational team to design visual materials and brand identities for educational platforms and advertising materials',
         jobLink: 'https://example.com/apply',
-        category: 'graphicDesigner',
-        experience: langAr ? 'من 2-4 سنوات' : '2-4 years',
-        level: langAr ? 'متوسط' : 'Mid-level',
-        qualification: langAr ? 'بكالوريوس تصميم جرافيك أو الفنون الجميلة' : 'Bachelor in Graphic Design or Fine Arts',
-        jobCategory: langAr ? 'تصميم' : 'Design',
-        location: langAr ? 'القاهرة، مصر' : 'Cairo, Egypt',
-        salary: langAr ? '5000-8000 جنيه مصري' : '5000-8000 EGP',
-        type: langAr ? 'دوام كامل' : 'Full-time',
-        postedDate: langAr ? 'منذ 3 أيام' : '3 days ago',
-        requirements: langAr ? [
-          'خبرة في برامج Adobe Creative Suite',
-          'مهارات في تصميم الهويات البصرية',
-          'القدرة على العمل ضمن فريق',
-          'الإبداع والاهتمام بالتفاصيل'
-        ] : [
-          'Experience with Adobe Creative Suite',
-          'Skills in visual identity design',
-          'Ability to work within a team',
-          'Creativity and attention to detail'
-        ]
       },
       {
         id: '2',
@@ -164,26 +138,6 @@ export class JobsComponent implements OnInit, OnDestroy {
           ? 'مهندس شبكات ذو خبرة لإدارة البنية التحتية للشبكات وتطويرها وضمان أمان وسرعة الاتصال'
           : 'Experienced network engineer to manage and develop network infrastructure and ensure security and connection speed',
         jobLink: 'https://example.com/apply',
-        category: 'networkEngineer',
-        experience: langAr ? 'من 5-7 سنوات' : '5-7 years',
-        level: langAr ? 'متقدم' : 'Senior',
-        qualification: langAr ? 'بكالوريوس هندسة حاسبات أو تقنية المعلومات' : 'Bachelor in Computer Engineering or IT',
-        jobCategory: langAr ? 'تقنية' : 'Technology',
-        location: langAr ? 'الإسكندرية، مصر' : 'Alexandria, Egypt',
-        salary: langAr ? '8000-12000 جنيه مصري' : '8000-12000 EGP',
-        type: langAr ? 'دوام كامل' : 'Full-time',
-        postedDate: langAr ? 'منذ أسبوع' : '1 week ago',
-        requirements: langAr ? [
-          'خبرة في إدارة الشبكات والبنية التحتية',
-          'معرفة ببروتوكولات الشبكات',
-          'شهادات Cisco أو Microsoft',
-          'مهارات حل المشاكل'
-        ] : [
-          'Experience in network and infrastructure management',
-          'Knowledge of network protocols',
-          'Cisco or Microsoft certifications',
-          'Problem-solving skills'
-        ]
       }
     ];
 
@@ -197,34 +151,14 @@ export class JobsComponent implements OnInit, OnDestroy {
         jobNameL2: String(this.pick(r.jobNameL2, r.JobNameL2, r.nameEn, r.NameEn, '')),
         description: String(this.pick(r.description, r.Description, '')),
         jobLink: String(this.pick(r.jobLink, r.JobLink, '')),
-        category: '',
-        experience: String(this.pick(r.experience, r.Experience, '')),
-        level: String(this.pick(r.level, r.Level, '')),
-        qualification: String(this.pick(r.qualification, r.Qualification, '')),
-        jobCategory: String(this.pick(r.jobCategory, r.JobCategory, '')),
-        location: String(this.pick(r.location, r.Location, '')),
-        salary: String(this.pick(r.salary, r.Salary, '')),
-        type: String(this.pick(r.type, r.Type, '')),
-        postedDate: String(this.pick(r.postedDate, r.PostedDate, '')),
-        requirements: Array.isArray(r.requirements)
-          ? r.requirements
-          : (typeof r.Requirements === 'string' ? r.Requirements.split('\n').filter(Boolean) : [])
+        academyDataId: String(this.pick(r.academyDataId, r.AcademyDataId, '')),
+        branchesDataId: String(this.pick(r.branchesDataId, r.BranchesDataId, ''))
       }));
 
-      // Overlay category using local mapping or derive from JobCategory label
-      const map = this.getCategoryMap();
-      const withCategory = normalized.map(j => {
-        const mappedId = map[j.id];
-        const derivedId = this.deriveCategoryIdFromName(j.jobCategory);
-        const finalCategoryId = mappedId || derivedId || '';
-        return {
-          ...j,
-          category: finalCategoryId,
-          jobCategory: j.jobCategory || (finalCategoryId ? this.labelFromCategoryId(finalCategoryId) : ''),
-        };
-      });
+      // Load academy and branch names
+      await this.loadAcademyAndBranchNames(normalized);
 
-      this.jobs = withCategory.length ? withCategory : mockJobs;
+      this.jobs = normalized.length ? normalized : mockJobs;
     } catch (e) {
       this.jobs = mockJobs;
     } finally {
@@ -233,23 +167,63 @@ export class JobsComponent implements OnInit, OnDestroy {
     }
   }
 
+  async loadAcademyAndBranchNames(jobs: JobItem[]): Promise<void> {
+    const uniqueAcademyIds = [...new Set(jobs.map(job => job.academyDataId).filter(id => id && id.trim() !== ''))];
+    const uniqueBranchIds = [...new Set(jobs.map(job => job.branchesDataId).filter(id => id && id.trim() !== ''))];
+
+    // Load academy names
+    for (const academyId of uniqueAcademyIds) {
+      if (!academyId) continue;
+      try {
+        const academy = await firstValueFrom(this.api.getAcademyDataById(academyId).pipe(catchError(() => of(null))));
+        if (academy) {
+          const academyName = this.pick(academy.academyNameL1, academy.AcademyNameL1, academy.name, academy.Name, '');
+          jobs.forEach(job => {
+            if (job.academyDataId === academyId) {
+              job.academyName = academyName;
+            }
+          });
+        }
+      } catch (e) {
+        console.warn(`Failed to load academy data for ID: ${academyId}`);
+      }
+    }
+
+    // Load branch names
+    for (const branchId of uniqueBranchIds) {
+      if (!branchId) continue;
+      try {
+        const branch = await firstValueFrom(this.api.getBranchesDataById(branchId).pipe(catchError(() => of(null))));
+        if (branch) {
+          const branchName = this.pick(branch.branchNameL1, branch.BranchNameL1, branch.name, branch.Name, '');
+          jobs.forEach(job => {
+            if (job.branchesDataId === branchId) {
+              job.branchName = branchName;
+            }
+          });
+        }
+      } catch (e) {
+        console.warn(`Failed to load branch data for ID: ${branchId}`);
+      }
+    }
+  }
+
   // Deprecated localStorage admin checks removed in favor of AuthService streams
 
   get filteredJobs(): JobItem[] {
-    const byCategory = this.selectedCategory === 'all'
-      ? this.jobs
-      : this.jobs.filter(j => j.category === this.selectedCategory);
+    // Since API doesn't support categories, just filter by search query
     const q = this.searchQuery.trim().toLowerCase();
-    if (!q) return byCategory;
-    return byCategory.filter(j =>
+    if (!q) return this.jobs;
+    return this.jobs.filter(j =>
       (j.jobNameL1 || '').toLowerCase().includes(q) || (j.jobNameL2 || '').toLowerCase().includes(q)
     );
   }
 
   updateCategoryCounts(): void {
+    // Category counts are not applicable since API doesn't support categories
     this.jobCategories = this.jobCategories.map(cat => ({
       ...cat,
-      count: this.jobs.filter(j => j.category === cat.id).length
+      count: 0
     }));
   }
 
@@ -273,14 +247,6 @@ export class JobsComponent implements OnInit, OnDestroy {
     JobNameL2: '',
     Description: '',
     JobLink: '',
-    Experience: '',
-    Level: '',
-    Qualification: '',
-    JobCategory: '',
-    Location: '',
-    Salary: '',
-    Type: '',
-    Requirements: '',
     AcademyDataId: '',
     BranchesDataId: '',
   };
@@ -293,14 +259,6 @@ export class JobsComponent implements OnInit, OnDestroy {
       JobNameL2: '',
       Description: '',
       JobLink: '',
-      Experience: '',
-      Level: '',
-      Qualification: '',
-      JobCategory: '',
-      Location: '',
-      Salary: '',
-      Type: '',
-      Requirements: '',
       AcademyDataId: '',
       BranchesDataId: '',
     };
@@ -319,9 +277,6 @@ export class JobsComponent implements OnInit, OnDestroy {
       await this.loadLookups();
     }
 
-    // Normalize JobCategory to one of 4 labels
-    const initialCategoryLabel = job.jobCategory || this.labelFromCategoryId(job.category) || '';
-    const normalizedLabel = this.normalizeJobCategoryLabelToAllowed(initialCategoryLabel);
 
     // Prefill form
     const academyId = (job as any).academyDataId || (job as any).AcademyDataId || '';
@@ -332,14 +287,6 @@ export class JobsComponent implements OnInit, OnDestroy {
       JobNameL2: job.jobNameL2 || '',
       Description: job.description || '',
       JobLink: job.jobLink || '',
-      Experience: job.experience || '',
-      Level: job.level || '',
-      Qualification: job.qualification || '',
-      JobCategory: normalizedLabel,
-      Location: job.location || '',
-      Salary: job.salary || '',
-      Type: job.type || '',
-      Requirements: (job.requirements || []).join('\n'),
       AcademyDataId: academyId,
       BranchesDataId: branchId,
     };
@@ -429,7 +376,10 @@ export class JobsComponent implements OnInit, OnDestroy {
         formData.append('JobNo', String(jobNo));
       }
 
-      const allowedKeys = ['JobNameL1', 'JobNameL2', 'Description', 'JobLink', 'AcademyDataId', 'BranchesDataId', 'JobCategory'];
+      const allowedKeys = [
+        'JobNameL1', 'JobNameL2', 'Description', 'JobLink', 
+        'AcademyDataId', 'BranchesDataId'
+      ];
       allowedKeys.forEach(key => {
         const val = (this.jobForm as any)[key];
         if (val !== undefined && val !== null && String(val).trim() !== '') {
@@ -444,16 +394,11 @@ export class JobsComponent implements OnInit, OnDestroy {
         Description: String(this.jobForm.Description || ''),
       };
 
-      const categoryId = this.deriveCategoryIdFromName(this.jobForm.JobCategory);
-
       if (this.selectedJob) {
         const res = await firstValueFrom(this.api.updateAcademyJob(String(this.selectedJob.id), formData).pipe(catchError((err) => {
           this.error = this.isRtl ? 'تعذّر تحديث الوظيفة' : 'Failed to update job';
           return of(null);
         })));
-        if (!this.error && this.selectedJob?.id && categoryId) {
-          this.setJobCategoryMapping(String(this.selectedJob.id), categoryId);
-        }
       } else {
         const res = await firstValueFrom(this.api.createAcademyJob(formData).pipe(catchError((err) => {
           this.error = this.isRtl ? 'تعذّر إنشاء الوظيفة' : 'Failed to create job';
@@ -470,20 +415,8 @@ export class JobsComponent implements OnInit, OnDestroy {
             jobNameL2: String(this.pick(r.jobNameL2, r.JobNameL2, r.nameEn, r.NameEn, '')),
             description: String(this.pick(r.description, r.Description, '')),
             jobLink: String(this.pick(r.jobLink, r.JobLink, '')),
-            category: '',
-            experience: String(this.pick(r.experience, r.Experience, '')),
-            level: String(this.pick(r.level, r.Level, '')),
-            qualification: String(this.pick(r.qualification, r.Qualification, '')),
-            jobCategory: String(this.pick(r.jobCategory, r.JobCategory, '')),
-            location: String(this.pick(r.location, r.Location, '')),
-            salary: String(this.pick(r.salary, r.Salary, '')),
-            type: String(this.pick(r.type, r.Type, '')),
-            postedDate: String(this.pick(r.postedDate, r.PostedDate, '')),
           })) : [];
           newId = this.inferNewJobIdFromList(submittedSnapshot, items);
-        }
-        if (!this.error && newId && categoryId) {
-          this.setJobCategoryMapping(newId, categoryId);
         }
       }
 
@@ -505,6 +438,18 @@ export class JobsComponent implements OnInit, OnDestroy {
       if (v !== undefined && v !== null) return v;
     }
     return undefined;
+  }
+
+  // Helper to format date for display
+  private formatDate(dateString: string): string {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString; // Return original if not a valid date
+      return date.toLocaleDateString(this.isRtl ? 'ar-EG' : 'en-US');
+    } catch {
+      return dateString;
+    }
   }
 
   private async loadLookups(): Promise<void> {

@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { LanguageService } from '../../services/language.service';
-import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-settings',
@@ -10,7 +9,6 @@ import { AuthService } from '../../services/auth.service';
 })
 export class SettingsComponent implements OnInit {
   isRtl = false;
-  isAdmin = false;
   reduceMotion = false;
   compactLayout = false;
 
@@ -21,22 +19,12 @@ export class SettingsComponent implements OnInit {
 
   constructor(
     private languageService: LanguageService,
-    private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.isRtl = this.languageService.current === 'ar';
-    this.checkAdminStatus();
     this.loadPreferences();
-  }
-
-  private checkAdminStatus(): void {
-    try {
-      this.isAdmin = this.authService.isAdmin();
-    } catch (error) {
-      this.isAdmin = false;
-    }
   }
 
   private loadPreferences(): void {
@@ -83,10 +71,6 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  navigateToAdmin(): void {
-    this.router.navigate(['/admin']);
-  }
-
   navigateToAccount(): void {
     this.router.navigate(['/account']);
   }
@@ -118,7 +102,6 @@ export class SettingsComponent implements OnInit {
         compactLayoutLabel: this.isRtl ? 'تخطيط مضغوط' : 'Compact Layout',
         compactLayoutDesc: this.isRtl ? 'استخدام مساحة أقل على الشاشة' : 'Use less space on screen'
       },
-      adminPanel: this.isRtl ? 'إدارة النظام' : 'Admin Panel',
       myAccount: this.isRtl ? 'حسابي' : 'My Account',
       help: this.isRtl ? 'المساعدة' : 'Help',
       open: this.isRtl ? 'فتح' : 'Open',
