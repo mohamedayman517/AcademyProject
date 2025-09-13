@@ -80,6 +80,7 @@ const routes: Routes = [
   { path: 'upload', component: ContentUploadComponent, canActivate: [AdminGuard] },
   { path: 'programs/:id', component: ProgramDetailsViewComponent },
   { path: 'projects/:id', component: ProjectDetailsViewComponent },
+  { path: 'project-details/:id', component: ProjectDetailsViewComponent },
   { path: 'videos', component: VideoGalleryComponent },
   { path: 'video/:id', component: VideoViewComponent },
   { path: '**', redirectTo: '' }

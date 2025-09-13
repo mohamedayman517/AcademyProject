@@ -125,6 +125,35 @@ export class AuthService {
     return token ? this.decodeJwt(token) : null;
   }
 
+  // Get current user data for the floating assistant
+  getCurrentUser(): any | null {
+    const token = this.getToken();
+    if (!token) return null;
+    
+    const payload = this.decodeJwt(token);
+    if (!payload) return null;
+    
+    return {
+      id: payload.sub || payload.userId || payload.id,
+      userId: payload.sub || payload.userId || payload.id,
+      guid: payload.sub || payload.userId || payload.id,
+      email: payload.email || payload.unique_name || payload.preferred_username,
+      Email: payload.email || payload.unique_name || payload.preferred_username,
+      firstName: payload.given_name || payload.firstName || payload.FirstName,
+      FirstName: payload.given_name || payload.firstName || payload.FirstName,
+      lastName: payload.family_name || payload.lastName || payload.LastName,
+      LastName: payload.family_name || payload.lastName || payload.LastName,
+      academyDataId: this.extractClaim(payload, ['academyDataId', 'AcademyDataId', 'academy_id', 'academy']),
+      AcademyDataId: this.extractClaim(payload, ['academyDataId', 'AcademyDataId', 'academy_id', 'academy']),
+      branchesDataId: this.extractClaim(payload, ['branchCodeId', 'BranchCodeId', 'branch_id', 'branch']),
+      BranchesDataId: this.extractClaim(payload, ['branchCodeId', 'BranchCodeId', 'branch_id', 'branch']),
+      phoneNumber: payload.phoneNumber || payload.PhoneNumber,
+      PhoneNumber: payload.phoneNumber || payload.PhoneNumber,
+      address: payload.address || payload.Address,
+      Address: payload.address || payload.Address
+    };
+  }
+
   private extractNameFromPayload(payload: any): string | null {
     if (!payload) return null;
     return (

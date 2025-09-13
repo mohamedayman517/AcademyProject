@@ -569,11 +569,31 @@ export class ApiService {
   }
 
   createProjectsDetail(projectData: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/api/ProjectsDetail`, projectData);
+    // Create FormData for multipart/form-data
+    const formData = new FormData();
+    
+    // Add all fields to FormData
+    Object.keys(projectData).forEach(key => {
+      if (projectData[key] !== null && projectData[key] !== undefined) {
+        formData.append(key, projectData[key]);
+      }
+    });
+    
+    return this.http.post<any>(`${this.baseUrl}/api/ProjectsDetail`, formData);
   }
 
   updateProjectsDetail(id: string, projectData: any): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}/api/ProjectsDetail/${id}`, projectData);
+    // Create FormData for multipart/form-data
+    const formData = new FormData();
+    
+    // Add all fields to FormData
+    Object.keys(projectData).forEach(key => {
+      if (projectData[key] !== null && projectData[key] !== undefined) {
+        formData.append(key, projectData[key]);
+      }
+    });
+    
+    return this.http.put<any>(`${this.baseUrl}/api/ProjectsDetail/${id}`, formData);
   }
 
   deleteProjectsDetail(id: string): Observable<any> {
@@ -1139,28 +1159,36 @@ export class ApiService {
     return this.http.get<any>(`${this.baseUrl}/api/ComplaintsStudent/${id}`);
   }
 
-  // Create with optional file: if payload.FilesAttach is File, send FormData
+  // Create with optional file: if payload.Files is File, send FormData
   createComplaintsStudent(payload: any): Observable<any> {
-    if (payload && payload.FilesAttach instanceof File) {
-      const form = new FormData();
-      Object.keys(payload).forEach(k => {
-        if (k === 'FilesAttach') {
-          form.append('FilesAttach', payload.FilesAttach);
-        } else if (payload[k] !== undefined && payload[k] !== null) {
-          form.append(k, String(payload[k]));
+    // Always use FormData for ComplaintsStudent as per API spec
+    const form = new FormData();
+    
+    Object.keys(payload).forEach(k => {
+      const value = payload[k];
+      if (value !== undefined && value !== null) {
+        if (k === 'Files' && value instanceof File) {
+          form.append('Files', value);
+        } else {
+          form.append(k, String(value));
         }
-      });
-      return this.http.post<any>(`${this.baseUrl}/api/ComplaintsStudent`, form);
-    }
-    return this.http.post<any>(`${this.baseUrl}/api/ComplaintsStudent`, payload);
+      }
+    });
+    
+    console.log('FormData contents:');
+    // Note: FormData.entries() is not available in all browsers
+    // We'll log the payload instead
+    console.log('Payload:', payload);
+    
+    return this.http.post<any>(`${this.baseUrl}/api/ComplaintsStudent`, form);
   }
 
   updateComplaintsStudent(id: string, payload: any): Observable<any> {
-    if (payload && payload.FilesAttach instanceof File) {
+    if (payload && payload.Files instanceof File) {
       const form = new FormData();
       Object.keys(payload).forEach(k => {
-        if (k === 'FilesAttach') {
-          form.append('FilesAttach', payload.FilesAttach);
+        if (k === 'Files') {
+          form.append('Files', payload.Files);
         } else if (payload[k] !== undefined && payload[k] !== null) {
           form.append(k, String(payload[k]));
         }

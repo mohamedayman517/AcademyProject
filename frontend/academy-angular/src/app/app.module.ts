@@ -14,7 +14,6 @@ import { ProgramsComponent } from './pages/programs/programs.component';
 import { ApiTestComponent } from './components/api-test/api-test.component';
 import { ProjectsComponent } from './pages/projects/projects.component';
 import { RegisterComponent } from './pages/register/register.component';
-import { ChatWidgetComponent } from './components/chat-widget/chat-widget.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
@@ -63,6 +62,13 @@ import { StudentAddComponent } from './pages/student-add/student-add.component';
 import { StudentAttendanceComponent } from './pages/student-attendance/student-attendance.component';
 import { StudentEvaluationsComponent } from './pages/student-evaluations/student-evaluations.component';
 import { StudentDashboardComponent } from './pages/student-dashboard/student-dashboard.component';
+import { FloatingAssistantComponent } from './components/floating-assistant/floating-assistant.component';
+import { ButtonComponent } from './shared/ui/button/button.component';
+import { InputComponent } from './shared/ui/input/input.component';
+import { TextareaComponent } from './shared/ui/textarea/textarea.component';
+import { BadgeComponent } from './shared/ui/badge/badge.component';
+import { CardComponent, CardHeaderComponent, CardTitleComponent, CardContentComponent } from './shared/ui/card/card.component';
+import { LucideAngularModule } from 'lucide-angular';
 
 @NgModule({
   declarations: [
@@ -73,7 +79,6 @@ import { StudentDashboardComponent } from './pages/student-dashboard/student-das
     ApiTestComponent,
     ProjectsComponent,
     RegisterComponent,
-    ChatWidgetComponent,
     FooterComponent,
     BranchesComponent,
     CareersComponent,
@@ -118,6 +123,15 @@ import { StudentDashboardComponent } from './pages/student-dashboard/student-das
     WeekdayNamePipe,
     MonthDaysPipe,
     ByDatePipe,
+    FloatingAssistantComponent,
+    ButtonComponent,
+    InputComponent,
+    TextareaComponent,
+    BadgeComponent,
+    CardComponent,
+    CardHeaderComponent,
+    CardTitleComponent,
+    CardContentComponent,
   ],
   imports: [
     BrowserModule,
@@ -126,6 +140,7 @@ import { StudentDashboardComponent } from './pages/student-dashboard/student-das
     RouterModule,
     AppRoutingModule,
     FormsModule,
+    LucideAngularModule,
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

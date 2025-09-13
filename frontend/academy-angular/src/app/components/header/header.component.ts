@@ -242,6 +242,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
       if (branchesData) {
         this.branches = JSON.parse(branchesData);
       }
+
+      // Log current academy and branch information if warning message should appear
+      this.logCurrentAcademyAndBranch();
     } catch (error) {
       console.log('Failed to load student data:', error);
     }
@@ -254,6 +257,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.userEmail$.pipe(take(1)).subscribe(userEmail => {
           if (userEmail) {
             this.loadStudentAcademyAndBranch(userEmail);
+            // Log after loading student data
+            setTimeout(() => this.logCurrentAcademyAndBranch(), 100);
           }
         });
       }
@@ -264,6 +269,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.userEmail$.pipe(take(1)).subscribe(userEmail => {
         if (userEmail) {
           this.loadStudentAcademyAndBranch(userEmail);
+          // Log after loading student data
+          setTimeout(() => this.logCurrentAcademyAndBranch(), 100);
         }
       });
     });
@@ -359,5 +366,37 @@ export class HeaderComponent implements OnInit, OnDestroy {
       result = rtl;
     });
     return result;
+  }
+
+  // Method to log current academy and branch information when warning message appears
+  logCurrentAcademyAndBranch(): void {
+    if (this.isStudent && this.isAuthenticated && (!this.studentAcademy || !this.studentBranch)) {
+      console.log('=== Academy and Branch Selection Required ===');
+      console.log('Current Student Academy ID:', this.studentAcademy || 'Not selected');
+      console.log('Current Student Branch ID:', this.studentBranch || 'Not selected');
+      
+      if (this.studentAcademy) {
+        const academyName = this.getAcademyName(this.studentAcademy);
+        console.log('Current Academy Name:', academyName);
+      }
+      
+      if (this.studentBranch) {
+        const branchName = this.getBranchName(this.studentBranch);
+        console.log('Current Branch Name:', branchName);
+      }
+      
+      console.log('Available Academies:', this.academies.map(a => ({
+        id: a.id,
+        name: a.academyNameL1 || a.AcademyNameL1 || a.academyNameL2 || a.AcademyNameL2 || a.name
+      })));
+      
+      console.log('Available Branches:', this.branches.map(b => ({
+        id: b.id,
+        name: b.branchNameL1 || b.BranchNameL1 || b.branchNameL2 || b.BranchNameL2 || b.name,
+        academyId: b.academyDataId || b.AcademyDataId
+      })));
+      
+      console.log('==========================================');
+    }
   }
 }

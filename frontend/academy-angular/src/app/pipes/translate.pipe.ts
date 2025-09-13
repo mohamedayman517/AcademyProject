@@ -278,14 +278,43 @@ const DICT: Record<string, { ar: string; en: string }> = {
   'common.search.placeholder': { ar: 'ابحث عن الدورات والبرامج...', en: 'Search courses and programs...' },
   'common.search.placeholderShort': { ar: 'بحث...', en: 'Search...' },
   'common.auth.login': { ar: 'دخول', en: 'Login' },
+  
+  // Trainers page translations
+  add_trainer: { ar: 'إضافة مدرب', en: 'Add Trainer' },
+  training_type: { ar: 'نوع التدريب', en: 'Training Type' },
+  trainer_name_ar_req: { ar: 'اسم المدرب (عربي) *', en: 'Trainer Name (Arabic) *' },
+  trainer_name_en: { ar: 'اسم المدرب (إنجليزي)', en: 'Trainer Name (English)' },
+  address_req: { ar: 'العنوان *', en: 'Address *' },
+  nid_14_req: { ar: 'رقم الهوية (14 رقم) *', en: 'National ID (14 digits) *' },
+  mobile: { ar: 'الجوال', en: 'Mobile' },
+  whatsapp_req: { ar: 'واتساب *', en: 'WhatsApp *' },
+  email_req: { ar: 'البريد الإلكتروني *', en: 'Email *' },
+  select_academy: { ar: 'اختر الأكاديمية', en: 'Select Academy' },
+  select_branch_opt: { ar: 'اختر الفرع (اختياري)', en: 'Select Branch (Optional)' },
+  description_opt: { ar: 'الوصف (اختياري)', en: 'Description (Optional)' },
+  basic: { ar: 'البيانات الأساسية', en: 'Basic Info' },
+  cv: { ar: 'السيرة الذاتية', en: 'CV' },
+  video: { ar: 'الفيديو', en: 'Video' },
+  cv_url_opt: { ar: 'رابط السيرة الذاتية (اختياري)', en: 'CV URL (Optional)' },
+  adding: { ar: 'جارٍ الإضافة...', en: 'Adding...' },
+  no_data: { ar: 'لا توجد بيانات', en: 'No data available' },
+  confirm_delete: { ar: 'تأكيد الحذف', en: 'Confirm Delete' },
+  are_you_sure_delete: { ar: 'هل أنت متأكد من حذف', en: 'Are you sure you want to delete' },
+  
+  // Programs page table headers
+  name_ar: { ar: 'الاسم (ع)', en: 'Name (AR)' },
+  name_en: { ar: 'الاسم (EN)', en: 'Name (EN)' },
+  desc: { ar: 'الوصف', en: 'Description' },
+  actions: { ar: 'الإجراءات', en: 'Actions' },
+  no_programs: { ar: 'لا توجد برامج.', en: 'No programs available.' },
 };
 
 @Pipe({ name: 't', pure: false })
 export class TranslatePipe implements PipeTransform {
   constructor(private lang: LanguageService) {}
-  transform(key: string): string {
+  transform(key: string, fallback?: string): string {
     const item = DICT[key];
-    if (!item) return key;
+    if (!item) return fallback || key;
     return this.lang.current === 'en' ? item.en : item.ar;
   }
 }
