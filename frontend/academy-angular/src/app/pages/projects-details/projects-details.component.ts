@@ -258,15 +258,6 @@ export class ProjectsDetailsComponent implements OnInit, OnDestroy {
     console.log('ProjectsMasterId value:', cleaned.ProjectsMasterId);
     console.log('Available projects master:', this.projectsMaster.map(p => ({ id: p.id || p.Id, name: p.ProjectNameL1 || p.projectNameL1 })));
     
-    // Create FormData for multipart/form-data as required by API
-    const formData = new FormData();
-    Object.keys(cleaned).forEach(key => {
-      if (cleaned[key] !== null && cleaned[key] !== undefined) {
-        formData.append(key, cleaned[key]);
-        console.log(`FormData - ${key}:`, cleaned[key]);
-      }
-    });
-
     // Additional validation
     if (!cleaned.ProjectNameL1 || cleaned.ProjectNameL1.length < 3) {
       this.error = 'اسم المشروع بالعربية يجب أن يكون 3 أحرف على الأقل';
@@ -276,10 +267,10 @@ export class ProjectsDetailsComponent implements OnInit, OnDestroy {
     this.isSubmitting = true;
     this.error = null;
 
-    // Use FormData instead of cleaned object for API calls
+    // IMPORTANT: Pass plain object; ApiService will construct FormData internally
     const op$ = this.selectedRow
-      ? this.api.updateProjectsDetail(this.selectedRow.id || this.selectedRow.Id, formData)
-      : this.api.createProjectsDetail(formData);
+      ? this.api.updateProjectsDetail(this.selectedRow.id || this.selectedRow.Id, cleaned)
+      : this.api.createProjectsDetail(cleaned);
 
     op$.subscribe({
       next: (response) => {

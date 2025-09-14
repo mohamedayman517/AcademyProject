@@ -454,25 +454,11 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   getBranchesForAcademy(academyId: string): any[] {
     if (!academyId) return [];
-    return this.branches.filter(branch => 
-      branch.academyDataId === academyId || branch.AcademyDataId === academyId
-    );
-  }
-
-  getAcademyName(academyId: string): string {
-    console.log('Getting academy name for ID:', academyId);
-    console.log('Available academies:', this.academies);
-    
-    const academy = this.academies.find(a => a.id === academyId);
-    const result = academy ? (academy.academyNameL1 || academy.AcademyNameL1 || academy.academyNameL2 || academy.AcademyNameL2 || academy.name || academy.id) : academyId;
-    
-    console.log('Academy name result:', result);
-    return result;
-  }
-
-  getBranchName(branchId: string): string {
-    const branch = this.branches.find(b => b.id === branchId);
-    return branch ? (branch.branchNameL1 || branch.BranchNameL1 || branch.branchNameL2 || branch.BranchNameL2 || branch.name || branch.id) : branchId;
+    const aid = String(academyId);
+    return this.branches.filter(b => {
+      const bidAcademy = b.academyDataId || b.AcademyDataId || b.academyId || b.AcademyId;
+      return String(bidAcademy) === aid;
+    });
   }
 
   hasValidAcademyData(): boolean {
@@ -487,16 +473,16 @@ export class AccountComponent implements OnInit, OnDestroy {
       length: academyId.length,
       isValidUUID: this.isValidUUID(academyId),
       academiesCount: this.academies.length,
-      existsInAcademies: this.academies.some(a => a.id === academyId)
+      existsInAcademies: this.academies.some(a => String(a.id || a.Id) === String(academyId))
     });
     
     // Check if academy ID exists and is a valid UUID (not placeholder values)
-    const isValid = academyId && 
+    const isValid = !!academyId && 
            academyId !== 'gggg' && 
            academyId !== 'dddd' && 
            academyId.length > 3 &&
            this.isValidUUID(academyId) &&
-           this.academies.some(a => a.id === academyId);
+           this.academies.some(a => String(a.id || a.Id) === String(academyId));
     
     console.log('Academy data is valid:', isValid);
     return isValid;
@@ -514,16 +500,16 @@ export class AccountComponent implements OnInit, OnDestroy {
       length: branchId.length,
       isValidUUID: this.isValidUUID(branchId),
       branchesCount: this.branches.length,
-      existsInBranches: this.branches.some(b => b.id === branchId)
+      existsInBranches: this.branches.some(b => String(b.id || b.Id) === String(branchId))
     });
     
     // Check if branch ID exists and is a valid UUID (not placeholder values)
-    const isValid = branchId && 
+    const isValid = !!branchId && 
            branchId !== 'gggg' && 
            branchId !== 'dddd' && 
            branchId.length > 3 &&
            this.isValidUUID(branchId) &&
-           this.branches.some(b => b.id === branchId);
+           this.branches.some(b => String(b.id || b.Id) === String(branchId));
     
     console.log('Branch data is valid:', isValid);
     return isValid;

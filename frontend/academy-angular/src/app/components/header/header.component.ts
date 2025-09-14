@@ -1,8 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, combineLatest, Subscription } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { map, take, retry, catchError } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { ApiService } from '../../services/api.service';
 import { LanguageService } from '../../services/language.service';
 
 interface NavigationItem {
@@ -48,19 +50,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(
     private auth: AuthService,
     private router: Router,
-    private lang: LanguageService
+    private lang: LanguageService,
+    private api: ApiService
   ) {
     this.isAuthenticated$ = this.auth.isAuthenticated$;
     this.userRole$ = this.auth.roles$.pipe(
-      map(roles => {
+      map((roles: string[] = []) => {
         if (!roles || roles.length === 0) return null;
         return roles[0]; // Get first role
       })
     );
     this.userEmail$ = this.auth.userName$; // Assuming userName contains email
     this.isAdmin$ = this.auth.roles$.pipe(
-      map(roles => {
-        const roleArray = roles || [];
+      map((roles: string[] = []) => {
+        const roleArray: string[] = roles || [];
         return roleArray.some(r => r.toLowerCase().includes('admin')) || 
                roleArray.some(r => r.toLowerCase().includes('administrator')) || 
                roleArray.some(r => r.toLowerCase().includes('superadmin')) ||
@@ -68,8 +71,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
       })
     );
     this.isStudent$ = this.auth.roles$.pipe(
-      map(roles => {
-        const roleArray = roles || [];
+      map((roles: string[] = []) => {
+        const roleArray: string[] = roles || [];
         return roleArray.some(r => r.toLowerCase().includes('student')) || 
                roleArray.some(r => r.toLowerCase().includes('user')) ||
                roleArray.length === 0; // Default to student if no roles
@@ -89,6 +92,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     
     // Listen for storage changes
     this.setupStorageListeners();
+    
+    // Load lists only when authenticated to avoid 401 on public pages
+    const authSub = this.isAuthenticated$.subscribe(isAuth => {
+      if (isAuth) {
+        this.loadGlobalLists();
+      }
+    });
+    this.subscriptions.push(authSub);
   }
 
   ngOnDestroy(): void {
@@ -250,6 +261,37 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
+  private loadGlobalLists(): void {
+    // Fetch academies and branches and cache them for other components
+    this.api.getAcademyData().pipe(
+      retry(1),
+      catchError((e) => {
+        // Ignore aborted requests (status 0) usually caused by navigation/HMR
+        if (e && e.status === 0) return EMPTY;
+        throw e;
+      })
+    ).subscribe({
+      next: (acads) => {
+        this.academies = Array.isArray(acads) ? acads : (acads?.data || acads?.items || []);
+        try { if (this.academies.length) localStorage.setItem('academiesData', JSON.stringify(this.academies)); } catch {}
+      },
+      error: (e) => { console.warn('Failed to load academies in header', e); }
+    });
+    this.api.getBranchesData().pipe(
+      retry(1),
+      catchError((e) => {
+        if (e && e.status === 0) return EMPTY;
+        throw e;
+      })
+    ).subscribe({
+      next: (brs) => {
+        this.branches = Array.isArray(brs) ? brs : (brs?.data || brs?.items || []);
+        try { if (this.branches.length) localStorage.setItem('branchesData', JSON.stringify(this.branches)); } catch {}
+      },
+      error: (e) => { console.warn('Failed to load branches in header', e); }
+    });
+  }
+
   private setupStorageListeners(): void {
     // Listen for storage changes
     window.addEventListener('storage', (e) => {
@@ -333,14 +375,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   getAcademyName(academyId: string): string {
     if (!academyId || !this.academies.length) return academyId;
-    const academy = this.academies.find(a => a.id === academyId);
-    return academy ? (academy.academyNameL1 || academy.AcademyNameL1 || academy.academyNameL2 || academy.AcademyNameL2 || academy.name || academyId) : academyId;
+    const aid = String(academyId);
+    const academy = this.academies.find(a => String(a.id || a.Id) === aid);
+    return academy ? (academy.academyNameL1 || academy.AcademyNameL1 || academy.academyNameL2 || academy.AcademyNameL2 || academy.name || aid) : aid;
   }
 
   getBranchName(branchId: string): string {
     if (!branchId || !this.branches.length) return branchId;
-    const branch = this.branches.find(b => b.id === branchId);
-    return branch ? (branch.branchNameL1 || branch.BranchNameL1 || branch.branchNameL2 || branch.BranchNameL2 || branch.name || branchId) : branchId;
+    const bid = String(branchId);
+    const branch = this.branches.find(b => String(b.id || b.Id) === bid);
+    return branch ? (branch.branchNameL1 || branch.BranchNameL1 || branch.branchNameL2 || branch.BranchNameL2 || branch.name || bid) : bid;
   }
 
   // Getters for template

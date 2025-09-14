@@ -45,15 +45,30 @@ export class LoginComponent {
 
   private extractToken(resp: any): string | null {
     if (!resp) return null;
-    // Try common shapes
-    return (
-      resp.token ||
-      resp.accessToken ||
-      resp.jwt ||
-      resp.idToken ||
-      resp?.data?.token ||
-      null
-    );
+    // Try common shapes first
+    const direct = resp.token || resp.accessToken || resp.access_token || resp.jwt || resp.idToken || resp?.data?.token || resp?.result?.token;
+    if (typeof direct === 'string') return direct;
+    // Fallback: deep-search for a JWT-looking string anywhere in the object
+    const jwtRegex = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
+    const stack: any[] = [resp];
+    const seen = new Set<any>();
+    while (stack.length) {
+      const cur = stack.pop();
+      if (!cur || seen.has(cur)) continue;
+      seen.add(cur);
+      if (typeof cur === 'string' && jwtRegex.test(cur)) return cur;
+      if (typeof cur === 'object') {
+        for (const k of Object.keys(cur)) {
+          const v: any = (cur as any)[k];
+          if (typeof v === 'string' && (k.toLowerCase().includes('token') || jwtRegex.test(v))) {
+            if (jwtRegex.test(v)) return v;
+          }
+          if (v && (typeof v === 'object' || Array.isArray(v))) stack.push(v);
+        }
+      }
+      if (Array.isArray(cur)) stack.push(...cur);
+    }
+    return null;
   }
 
   submit(): void {
@@ -72,8 +87,66 @@ export class LoginComponent {
         }
         // Set token via AuthService so header updates immediately
         this.auth.setToken(token);
-        // Navigate to home (or projects) after login
-        this.router.navigateByUrl('/');
+        // Optionally store refresh token if present
+        const refresh = (resp && (resp.refreshToken || resp.refresh_token || resp?.data?.refreshToken)) as string | undefined;
+        if (refresh) localStorage.setItem('refresh_token', refresh);
+        // Fetch current user and student data to initialize session context
+        this.api.accountMe().subscribe({
+          next: (me) => {
+            try {
+              if (me) localStorage.setItem('profileData', JSON.stringify(me));
+            } catch {}
+            // Load StudentData and store current student's record if any
+            this.api.getStudentData().subscribe({
+              next: (students) => {
+                try {
+                  const email = (me?.email || me?.Email || this.email || '').toLowerCase();
+                  const match = Array.isArray(students)
+                    ? students.find((s: any) => {
+                        const semail = (s.email || s.Email || s.studentEmail || s.StudentEmail || '').toLowerCase();
+                        return semail && email && semail === email;
+                      })
+                    : null;
+                  if (match) {
+                    localStorage.setItem('studentData', JSON.stringify(match));
+                  } else {
+                    // Auto-create minimal StudentData so other components can recognize the session
+                    const fullName = me?.fullName || me?.name || (me?.given_name && me?.family_name ? `${me.given_name} ${me.family_name}` : '') || this.email;
+                    const payload: any = {
+                      studentNameL1: fullName || 'User',
+                      studentNameL2: fullName || 'User',
+                      studentEmail: me?.email || me?.Email || this.email,
+                      studentPhone: '',
+                      language: 'ar',
+                      studentAddress: 'N/A',
+                      trainingProvider: 'Academy System'
+                    };
+                    this.api.createStudentData(payload).subscribe({
+                      next: (created) => {
+                        try { if (created) localStorage.setItem('studentData', JSON.stringify(created)); } catch {}
+                        // Notify listeners (header) that student data has changed
+                        try { window.dispatchEvent(new CustomEvent('student-data-changed')); } catch {}
+                      },
+                      error: () => {
+                        // ignore create error; user can create later from /account
+                      }
+                    });
+                  }
+                } catch {}
+                // Navigate to home after initializing session context
+                this.router.navigateByUrl('/');
+              },
+              error: () => {
+                // Navigate anyway if students fetch fails
+                this.router.navigateByUrl('/');
+              }
+            });
+          },
+          error: () => {
+            // Navigate if accountMe fails
+            this.router.navigateByUrl('/');
+          }
+        });
       },
       error: (err) => {
         console.error('login error', err);

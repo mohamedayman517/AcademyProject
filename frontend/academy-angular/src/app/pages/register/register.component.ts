@@ -37,14 +37,6 @@ import { environment } from '../../../environments/environment';
             <input type="tel" [(ngModel)]="form.phone" name="phone" [disabled]="submitting" />
           </label>
           <label class="field">
-            <span>{{ 'academy_id_opt' | t }}</span>
-            <input type="text" [(ngModel)]="form.academyDataId" name="academyDataId" [disabled]="submitting" placeholder="GUID (اختياري)" />
-          </label>
-          <label class="field">
-            <span>{{ 'branch_id_opt' | t }}</span>
-            <input type="text" [(ngModel)]="form.branchCodeId" name="branchCodeId" [disabled]="submitting" placeholder="GUID (اختياري)" />
-          </label>
-          <label class="field">
             <span>{{ 'password_label' | t }}</span>
             <input type="password" [(ngModel)]="form.password" name="password" [disabled]="submitting" required />
           </label>
@@ -146,23 +138,8 @@ export class RegisterComponent {
       next: (response) => {
         console.log('Registration successful:', response);
         this.success = ('register_success' as any) as string;
-        // بعض الـ APIs لا ترجع توكن في التسجيل، لذا نسجّل الدخول مباشرة
-        this.api.login({ email: this.form.email, password: this.form.password }).subscribe({
-          next: (resp) => {
-            console.log('Login successful:', resp);
-            const token = this.extractToken(resp);
-            if (token) {
-              // Store via AuthService so header updates immediately
-              this.auth.setToken(token);
-            }
-            this.router.navigateByUrl('/');
-          },
-          error: (loginErr) => {
-            console.error('Auto-login failed:', loginErr);
-            // لو فشل تسجيل الدخول التلقائي، نوجّه المستخدم لصفحة الدخول
-            this.router.navigateByUrl('/login');
-          }
-        });
+        // توجيه المستخدم مباشرة لصفحة تسجيل الدخول كما طلبت
+        this.router.navigateByUrl('/login');
       },
       error: (err) => {
         console.error('register error', err);

@@ -64,6 +64,8 @@ interface Student {
   name?: string;
   email?: string;
   Email?: string;
+  studentEmail?: string;
+  StudentEmail?: string;
   academyDataId?: string;
   AcademyDataId?: string;
   branchesDataId?: string;
@@ -545,6 +547,8 @@ export class FloatingAssistantComponent implements OnInit, OnDestroy {
           this.loadStudents(),
           this.loadCurrentUser()
         ]);
+        // After loading all prerequisites, select defaults if available
+        this.setDefaultComplaintContext();
       } else if (this.activeTab === 'reports') {
         await this.loadReports();
       }
@@ -552,6 +556,59 @@ export class FloatingAssistantComponent implements OnInit, OnDestroy {
       console.error('Error loading data:', error);
     } finally {
       this.loading = false;
+    }
+  }
+
+  private setDefaultComplaintContext(): void {
+    try {
+      // Persist lists for header use as well
+      try {
+        if (Array.isArray(this.academies) && this.academies.length) {
+          localStorage.setItem('academiesData', JSON.stringify(this.academies));
+        }
+        if (Array.isArray(this.branches) && this.branches.length) {
+          localStorage.setItem('branchesData', JSON.stringify(this.branches));
+        }
+      } catch {}
+
+      // If academy already selected by user, ensure branches are filtered
+      if (this.newComplaint.academyId) {
+        this.onAcademyChange();
+        return;
+      }
+
+      // Derive defaults from currentUser (claims) or matched student record
+      let academyId = '';
+      let branchId = '';
+      if (this.currentUser) {
+        academyId =
+          (this.currentUser.academyDataId || this.currentUser.AcademyDataId || '') as string;
+        branchId =
+          (this.currentUser.branchesDataId || this.currentUser.BranchesDataId || '') as string;
+      }
+
+      if ((!academyId || !branchId) && Array.isArray(this.students) && this.students.length) {
+        const email = (this.currentUser?.email || this.currentUser?.Email || '').toLowerCase();
+        const matched = this.students.find((s) => {
+          const semail = (s.email || s.Email || s.studentEmail || s.StudentEmail || '').toLowerCase();
+          return semail && email && semail === email;
+        });
+        if (matched) {
+          academyId = academyId || String(matched.academyDataId || matched.AcademyDataId || '');
+          branchId = branchId || String(matched.branchesDataId || matched.BranchesDataId || '');
+        }
+      }
+
+      if (academyId) {
+        this.newComplaint.academyId = academyId;
+        // Filter branches for selected academy
+        this.onAcademyChange();
+        if (branchId) {
+          this.newComplaint.branchId = branchId;
+        }
+      }
+    } catch (e) {
+      console.warn('setDefaultComplaintContext failed', e);
     }
   }
 
@@ -817,40 +874,53 @@ export class FloatingAssistantComponent implements OnInit, OnDestroy {
 
     this.loading = true;
     try {
+      // Resolve student ID from explicit selection, current user, students list, or localStorage
+      let resolvedStudentId = (this.newComplaint.studentId || '').trim();
+      const userId = this.currentUser?.id || this.currentUser?.userId || this.currentUser?.guid || '';
+      const userEmail = (this.currentUser?.email || this.currentUser?.Email || '').toLowerCase();
+
+      if (!resolvedStudentId) {
+        // Try find by matching userId or email within loaded students
+        const matched = this.students.find((s) => {
+          const sid = s.id || s.guid;
+          const semail = (s.email || s.Email || '').toLowerCase();
+          return (sid && userId && String(sid) === String(userId)) || (semail && userEmail && semail === userEmail);
+        });
+        if (matched) {
+          resolvedStudentId = String(matched.id || matched.guid);
+        }
+      }
+
+      if (!resolvedStudentId) {
+        // Try localStorage studentData saved by account page
+        const studentDataRaw = localStorage.getItem('studentData');
+        if (studentDataRaw) {
+          try {
+            const sd = JSON.parse(studentDataRaw);
+            if (sd?.id || sd?.Id) {
+              resolvedStudentId = String(sd.id || sd.Id);
+            }
+          } catch {}
+        }
+      }
+
+      if (!resolvedStudentId) {
+        this.complaintError = this.t('no_student_matched');
+        this.loading = false;
+        return;
+      }
+
       // Prepare complaint data for API (multipart/form-data)
       const complaintData = {
         ComplaintsTypeId: this.newComplaint.typeId,
         AcademyDataId: this.newComplaint.academyId,
         BranchesDataId: this.newComplaint.branchId,
-        StudentsDataId: this.newComplaint.studentId || this.currentUser?.id || '',
+        StudentsDataId: resolvedStudentId,
         Description: this.newComplaint.description,
-        Date: new Date().toISOString().split('T')[0], // Today's date
-        ComplaintsStatusesId: this.complaintStatuses[0]?.id || '', // Default to first status
+        Date: new Date().toISOString().split('T')[0],
+        ComplaintsStatusesId: this.complaintStatuses[0]?.id || '',
         Files: this.newComplaint.files.length > 0 ? this.newComplaint.files[0] : null
       };
-
-      // If no student selected, use current user ID from profile data
-      if (!complaintData.StudentsDataId) {
-        // Try to get student ID from profile data
-        const profileData = localStorage.getItem('profileData');
-        if (profileData) {
-          try {
-            const profile = JSON.parse(profileData);
-            if (profile.id) {
-              complaintData.StudentsDataId = profile.id;
-              console.log('Using profile student ID:', profile.id);
-            }
-          } catch (e) {
-            console.error('Error parsing profile data:', e);
-          }
-        }
-        
-        // If still no student ID, use a default one for testing
-        if (!complaintData.StudentsDataId) {
-          complaintData.StudentsDataId = '15378f5b-11ce-4637-7790-08ddd9cac43e'; // Use the ID from the log
-          console.log('Using default student ID for testing');
-        }
-      }
 
       // Validate required fields
       if (!complaintData.ComplaintsTypeId) {
@@ -879,24 +949,8 @@ export class FloatingAssistantComponent implements OnInit, OnDestroy {
       console.log('Selected student ID:', this.newComplaint.studentId);
 
       // Submit complaint via API (API service handles multipart/form-data)
-      // Note: Since the API endpoint is not available (404), we'll simulate success for now
-      try {
-        const result = await this.apiService.createComplaintsStudent(complaintData).toPromise();
-        console.log('Complaint submitted successfully:', result);
-      } catch (error: any) {
-        if (error.status === 404) {
-          // API endpoint not available, simulate success for demo purposes
-          console.log('API endpoint not available, simulating success for demo');
-          const mockResult = {
-            id: 'mock-complaint-id',
-            message: 'Complaint submitted successfully (simulated)',
-            data: complaintData
-          };
-          console.log('Mock complaint result:', mockResult);
-        } else {
-          throw error; // Re-throw other errors
-        }
-      }
+      const result = await this.apiService.createComplaintsStudent(complaintData).toPromise();
+      console.log('Complaint submitted successfully:', result);
       
       this.complaintSuccess = this.t('complaint_submitted_successfully');
       this.newComplaint = {

@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://95.216.63.80:255',
+  apiBaseUrl: 'http://localhost:8000',
   // Optional: paste a temporary JWT here for local testing only.
   // Leave empty to require real login/token via localStorage.
   devToken: '',

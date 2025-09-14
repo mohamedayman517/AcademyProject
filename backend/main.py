@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import httpx
@@ -36,47 +36,54 @@ class APIClient:
         self.base_url = EXTERNAL_API_BASE
         self.timeout = 30.0
     
-    async def get(self, endpoint: str, params: Optional[Dict] = None):
+    async def get(self, endpoint: str, params: Optional[Dict] = None, headers: Optional[Dict[str, str]] = None):
         """إجراء طلب GET إلى API الخارجي"""
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
-                response = await client.get(f"{self.base_url}/{endpoint}", params=params)
+                response = await client.get(f"{self.base_url}/{endpoint}", params=params, headers=headers)
                 response.raise_for_status()
                 return response.json()
             except httpx.HTTPError as e:
                 raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
     
-    async def post(self, endpoint: str, data: Optional[Dict] = None):
+    async def post(self, endpoint: str, data: Optional[Dict] = None, headers: Optional[Dict[str, str]] = None):
         """إجراء طلب POST إلى API الخارجي"""
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
-                response = await client.post(f"{self.base_url}/{endpoint}", json=data)
+                response = await client.post(f"{self.base_url}/{endpoint}", json=data, headers=headers)
                 response.raise_for_status()
                 return response.json()
             except httpx.HTTPError as e:
                 raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
     
-    async def put(self, endpoint: str, data: Optional[Dict] = None):
+    async def put(self, endpoint: str, data: Optional[Dict] = None, headers: Optional[Dict[str, str]] = None):
         """إجراء طلب PUT إلى API الخارجي"""
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
-                response = await client.put(f"{self.base_url}/{endpoint}", json=data)
+                response = await client.put(f"{self.base_url}/{endpoint}", json=data, headers=headers)
                 response.raise_for_status()
                 return response.json()
             except httpx.HTTPError as e:
                 raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
     
-    async def delete(self, endpoint: str):
+    async def delete(self, endpoint: str, headers: Optional[Dict[str, str]] = None):
         """إجراء طلب DELETE إلى API الخارجي"""
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
-                response = await client.delete(f"{self.base_url}/{endpoint}")
+                response = await client.delete(f"{self.base_url}/{endpoint}", headers=headers)
                 response.raise_for_status()
                 return response.json()
             except httpx.HTTPError as e:
                 raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
 
 api_client = APIClient()
+
+def forward_auth_headers(request: Request) -> Dict[str, str]:
+    headers: Dict[str, str] = {}
+    auth = request.headers.get("authorization")
+    if auth:
+        headers["authorization"] = auth
+    return headers
 
 @app.get("/")
 async def root():
@@ -141,10 +148,10 @@ async def get_course_types():
 
 # نقاط النهاية لبيانات الأكاديمية
 @app.get("/academy-data")
-async def get_academy_data():
+async def get_academy_data(request: Request):
     """الحصول على بيانات الأكاديمية"""
     try:
-        data = await api_client.get("AcademyData")
+        data = await api_client.get("AcademyData", headers=forward_auth_headers(request))
         return {"data": data, "status": "success"}
     except Exception as e:
         return {"data": [], "status": "error", "message": str(e)}
@@ -161,10 +168,10 @@ async def get_jobs():
 
 # نقاط النهاية للفروع
 @app.get("/branches")
-async def get_branches():
+async def get_branches(request: Request):
     """الحصول على فروع الأكاديمية"""
     try:
-        branches = await api_client.get("BranchData")
+        branches = await api_client.get("BranchData", headers=forward_auth_headers(request))
         return {"branches": branches, "status": "success"}
     except Exception as e:
         return {"branches": [], "status": "error", "message": str(e)}
@@ -577,30 +584,47 @@ async def get_chat_messages():
         return {"messages": [], "status": "error", "message": str(e)}
 
 # Generic proxy for Angular's existing `/api/...` endpoints
-# This allows the frontend to keep calling `/api/...` while pointing baseUrl to this backend.
+"""
+This allows the frontend to keep calling `/api/...` while pointing baseUrl to this backend.
+It now correctly forwards raw bodies (including multipart/form-data) and returns binary responses.
+"""
 @app.api_route("/api/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def proxy_api(full_path: str, request: Request):
     method = request.method
     params = dict(request.query_params)
-    json_body = None
-    if method in {"POST", "PUT", "PATCH"}:
-        try:
-            json_body = await request.json()
-        except Exception:
-            json_body = None
+
+    # Read raw body once (supports JSON, form-data, files, etc.)
+    body_bytes = await request.body()
+
+    # Prepare headers: forward most headers except hop-by-hop ones
+    forward_headers = {}
+    for k, v in request.headers.items():
+        lk = k.lower()
+        if lk in {"host", "content-length", "accept-encoding", "connection"}:
+            continue
+        # Forward Authorization and Content-Type, etc.
+        forward_headers[k] = v
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             target_url = f"{EXTERNAL_API_BASE}/{full_path}"
-            # Forward Authorization header if present
-            headers = {}
-            auth_header = request.headers.get("authorization")
-            if auth_header:
-                headers["authorization"] = auth_header
-            resp = await client.request(method, target_url, params=params, json=json_body, headers=headers)
-            resp.raise_for_status()
-            # Assume JSON responses from external API
-            return resp.json()
+            resp = await client.request(
+                method,
+                target_url,
+                params=params,
+                content=body_bytes if body_bytes else None,
+                headers=forward_headers,
+            )
+            # Do not raise for status here; preserve upstream status codes
+            # Build FastAPI Response preserving content-type and disposition for files
+            response_headers = {}
+            ct = resp.headers.get("content-type")
+            cd = resp.headers.get("content-disposition")
+            if ct:
+                response_headers["content-type"] = ct
+            if cd:
+                response_headers["content-disposition"] = cd
+            return Response(content=resp.content, status_code=resp.status_code, headers=response_headers)
     except httpx.HTTPError as e:
         status = getattr(e.response, "status_code", 500) if hasattr(e, "response") and e.response is not None else 500
         raise HTTPException(status_code=status, detail=f"External API error: {str(e)}")
