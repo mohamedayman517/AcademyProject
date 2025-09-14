@@ -112,6 +112,26 @@ export class LoginComponent {
                   } else {
                     // Auto-create minimal StudentData so other components can recognize the session
                     const fullName = me?.fullName || me?.name || (me?.given_name && me?.family_name ? `${me.given_name} ${me.family_name}` : '') || this.email;
+                    // Try to resolve academy/branch from localStorage (if previously cached)
+                    let academyId = '';
+                    let branchId = '';
+                    try {
+                      const social = localStorage.getItem('userSocialMedia');
+                      if (social) {
+                        const js = JSON.parse(social);
+                        academyId = js?.academyDataId || js?.AcademyDataId || '';
+                        branchId = js?.branchesDataId || js?.BranchesDataId || '';
+                      }
+                      // If not found, try studentData cache
+                      if (!academyId || !branchId) {
+                        const sdRaw = localStorage.getItem('studentData');
+                        if (sdRaw) {
+                          const sd = JSON.parse(sdRaw);
+                          academyId = academyId || sd?.academyDataId || sd?.AcademyDataId || '';
+                          branchId = branchId || sd?.branchesDataId || sd?.BranchesDataId || '';
+                        }
+                      }
+                    } catch {}
                     const payload: any = {
                       studentNameL1: fullName || 'User',
                       studentNameL2: fullName || 'User',
@@ -119,7 +139,9 @@ export class LoginComponent {
                       studentPhone: '',
                       language: 'ar',
                       studentAddress: 'N/A',
-                      trainingProvider: 'Academy System'
+                      trainingProvider: 'Academy System',
+                      academyDataId: academyId || undefined,
+                      branchesDataId: branchId || undefined
                     };
                     this.api.createStudentData(payload).subscribe({
                       next: (created) => {

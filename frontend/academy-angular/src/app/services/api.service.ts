@@ -855,7 +855,36 @@ export class ApiService {
   }
 
   createStudentData(studentData: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/api/StudentData`, studentData);
+    // Normalize keys to match backend expectations (PascalCase)
+    const src: any = studentData || {};
+    const normalized: any = {
+      AcademyDataId: src.AcademyDataId ?? src.academyDataId ?? src.academyId ?? src.AcademyId ?? undefined,
+      BranchesDataId: src.BranchesDataId ?? src.branchesDataId ?? src.branchId ?? src.BranchId ?? undefined,
+      StudentNameL1: src.StudentNameL1 ?? src.studentNameL1 ?? src.fullName ?? src.name ?? undefined,
+      StudentNameL2: src.StudentNameL2 ?? src.studentNameL2 ?? src.StudentNameL1 ?? src.studentNameL1 ?? undefined,
+      StudentEmail: src.StudentEmail ?? src.studentEmail ?? src.Email ?? src.email ?? undefined,
+      StudentPhone: src.StudentPhone ?? src.studentPhone ?? src.phoneNumber ?? src.PhoneNumber ?? '',
+      StudentAddress: src.StudentAddress ?? src.studentAddress ?? src.address ?? '',
+      Language: src.Language ?? src.language ?? 'ar',
+      TrainingProvider: src.TrainingProvider ?? src.trainingProvider ?? 'Academy System',
+    };
+
+    // If name is still missing, fallback to email as a display name
+    if (!normalized.StudentNameL1 && normalized.StudentEmail) {
+      normalized.StudentNameL1 = normalized.StudentEmail;
+    }
+    if (!normalized.StudentNameL2 && normalized.StudentNameL1) {
+      normalized.StudentNameL2 = normalized.StudentNameL1;
+    }
+
+    // Remove only undefined/null fields; keep empty strings if provided intentionally
+    Object.keys(normalized).forEach((k) => {
+      if (normalized[k] === undefined || normalized[k] === null) {
+        delete normalized[k];
+      }
+    });
+
+    return this.http.post<any>(`${this.baseUrl}/api/StudentData`, normalized);
   }
 
   updateStudentData(id: string, studentData: any): Observable<any> {
@@ -1162,31 +1191,41 @@ export class ApiService {
   // Create with optional file: if payload.Files is File, send FormData
   createComplaintsStudent(payload: any): Observable<any> {
     // Always use FormData for ComplaintsStudent as per API spec
+    const src: any = payload || {};
+    // Normalize common variants to PascalCase expected by backend
+    const normalized: any = {
+      ComplaintsTypeId: src.ComplaintsTypeId ?? src.complaintsTypeId ?? src.typeId ?? undefined,
+      AcademyDataId: src.AcademyDataId ?? src.academyDataId ?? src.academyId ?? undefined,
+      BranchesDataId: src.BranchesDataId ?? src.branchesDataId ?? src.branchId ?? undefined,
+      StudentsDataId: src.StudentsDataId ?? src.studentDataId ?? src.StudentDataId ?? src.studentId ?? undefined,
+      Description: src.Description ?? src.description ?? '',
+      ComplaintsStatusesId: src.ComplaintsStatusesId ?? src.complaintsStatusesId ?? src.statusId ?? undefined,
+      Date: src.Date ?? src.date ?? new Date().toISOString().split('T')[0],
+      Files: src.Files ?? src.files ?? null,
+    };
+
+    // Remove undefined/null, keep valid falsy like empty string
+    Object.keys(normalized).forEach((k) => {
+      if (normalized[k] === undefined || normalized[k] === null) delete normalized[k];
+    });
+
     const form = new FormData();
-    
-    Object.keys(payload).forEach(k => {
-      const value = payload[k];
-      if (value !== undefined && value !== null) {
-        if (k === 'Files' && value instanceof File) {
-          form.append('Files', value);
-        } else {
-          form.append(k, String(value));
-        }
+    Object.keys(normalized).forEach((k) => {
+      const v = normalized[k];
+      if (k === 'Files' && v instanceof File) {
+        form.append('Files', v);
+      } else {
+        form.append(k, String(v));
       }
     });
-    
-    console.log('FormData contents:');
-    // Note: FormData.entries() is not available in all browsers
-    // We'll log the payload instead
-    console.log('Payload:', payload);
-    
+
     return this.http.post<any>(`${this.baseUrl}/api/ComplaintsStudent`, form);
   }
 
   updateComplaintsStudent(id: string, payload: any): Observable<any> {
     if (payload && payload.Files instanceof File) {
       const form = new FormData();
-      Object.keys(payload).forEach(k => {
+      Object.keys(payload).forEach((k) => {
         if (k === 'Files') {
           form.append('Files', payload.Files);
         } else if (payload[k] !== undefined && payload[k] !== null) {

@@ -51,6 +51,62 @@ export class AccountComponent implements OnInit, OnDestroy {
     return this.lang.current === 'ar';
   }
 
+  private async ensureStudentDataIds(): Promise<void> {
+    try {
+      // Ensure we have defaults resolved
+      this.resolveDefaultAcademyAndBranch();
+      const validAcademy = !!(this.selectedAcademy && this.isValidUUID(this.selectedAcademy));
+      const validBranch = !!(this.selectedBranch && this.isValidUUID(this.selectedBranch));
+      if (!validAcademy || !validBranch) return;
+
+      const fullName = this.user?.fullName || `${this.user?.firstName || ''} ${this.user?.lastName || ''}`.trim() || (this.user?.email || this.user?.Email) || 'User';
+      const phoneNumber = this.ensurePhone(this.phone);
+
+      // If studentData exists but IDs are missing, update it
+      if (this.studentData) {
+        const hasAcademy = !!(this.studentData.academyDataId || this.studentData.AcademyDataId);
+        const hasBranch = !!(this.studentData.branchesDataId || this.studentData.BranchesDataId);
+        const id = this.studentData.id || this.studentData.Id;
+        if (id && (!hasAcademy || !hasBranch)) {
+          const payload = {
+            id,
+            academyDataId: this.selectedAcademy,
+            branchesDataId: this.selectedBranch,
+            studentNameL1: this.studentData.studentNameL1 || this.studentData.StudentNameL1 || fullName,
+            studentNameL2: this.studentData.studentNameL2 || this.studentData.StudentNameL2 || fullName,
+            studentEmail: this.studentData.studentEmail || this.studentData.StudentEmail || this.user?.email || this.user?.Email,
+            studentPhone: phoneNumber,
+            studentAddress: this.studentData.studentAddress || this.studentData.StudentAddress || 'N/A',
+            language: this.studentData.language || this.studentData.Language || 'ar',
+            trainingProvider: this.studentData.trainingProvider || this.studentData.TrainingProvider || 'Academy System',
+          };
+          this.studentData = await this.api.updateStudentData(String(id), payload as any).toPromise();
+          this.updateLocalStorage();
+          return;
+        }
+      }
+
+      // If no studentData, create a minimal one with the resolved IDs
+      if (!this.studentData) {
+        const createPayload = {
+          studentNameL1: fullName,
+          studentNameL2: fullName,
+          studentEmail: this.user?.email || this.user?.Email,
+          studentPhone: phoneNumber,
+          studentAddress: 'N/A',
+          language: 'ar',
+          trainingProvider: 'Academy System',
+          academyDataId: this.selectedAcademy,
+          branchesDataId: this.selectedBranch,
+        };
+        this.studentData = await this.api.createStudentData(createPayload as any).toPromise();
+        this.updateLocalStorage();
+      }
+    } catch (e) {
+      console.warn('ensureStudentDataIds failed', e);
+    }
+  }
+
   get isAdmin(): boolean {
     return this.auth.isAdmin();
   }
@@ -89,6 +145,11 @@ export class AccountComponent implements OnInit, OnDestroy {
         this.loadProfilePicture(),
         this.loadAdminStatsIfAdmin(),
       ]);
+      // Try resolve sensible defaults for academy/branch if not set
+      this.resolveDefaultAcademyAndBranch();
+      // If we can resolve valid IDs, persist them automatically to stop header warnings
+      await this.ensureStudentDataIds();
+
     } catch (e: any) {
       if (e?.status === 401) {
         this.error = this.isRtl ? 'يرجى تسجيل الدخول' : 'Please log in';
@@ -122,6 +183,81 @@ export class AccountComponent implements OnInit, OnDestroy {
       this.branches = [];
     } finally {
       this.loadingAcademyData = false;
+    }
+  }
+
+  private resolveDefaultAcademyAndBranch(): void {
+    try {
+      // Pick default academy if none selected
+      if (!this.selectedAcademy) {
+        if (this.academies.length === 1) {
+          this.selectedAcademy = String(this.academies[0].id || this.academies[0].Id || '');
+        } else if (this.hasValidAcademyData() && this.studentData) {
+          const aid = this.studentData.academyDataId || this.studentData.AcademyDataId;
+          if (aid) this.selectedAcademy = String(aid);
+        } else if (this.user) {
+          const uAid = this.user.academyDataId || this.user.AcademyDataId || '';
+          if (uAid && this.isValidUUID(String(uAid))) {
+            this.selectedAcademy = String(uAid);
+          }
+        }
+      }
+
+      // Pick default branch if none selected
+      if (this.selectedAcademy && !this.selectedBranch) {
+        const related = this.getBranchesForAcademy(this.selectedAcademy);
+        if (related.length === 1) {
+          this.selectedBranch = String(related[0].id || related[0].Id || '');
+        } else if (this.hasValidBranchData() && this.studentData) {
+          const bid = this.studentData.branchesDataId || this.studentData.BranchesDataId;
+          if (bid) this.selectedBranch = String(bid);
+        } else if (this.user) {
+          const uBid = this.user.branchesDataId || this.user.BranchesDataId || '';
+          if (uBid && this.isValidUUID(String(uBid))) {
+            this.selectedBranch = String(uBid);
+          } else if (related.length >= 1) {
+            // As a last resort, pick the first available branch under the selected academy
+            this.selectedBranch = String(related[0].id || related[0].Id || '');
+          }
+        }
+        // If still no branch found and we have branches list, align to first branch's academy
+        if (!this.selectedBranch && this.branches.length > 0) {
+          const firstBranch = this.branches[0];
+          const firstBranchAcademy = String(firstBranch.academyDataId || firstBranch.AcademyDataId || firstBranch.academyId || firstBranch.AcademyId || '');
+          if (firstBranchAcademy) {
+            this.selectedAcademy = firstBranchAcademy;
+            this.selectedBranch = String(firstBranch.id || firstBranch.Id || '');
+          }
+        }
+      }
+
+      // Final safety net: if still missing either academy or branch, pick first available consistent pair
+      if ((!this.selectedAcademy || !this.selectedBranch) && this.academies.length > 0 && this.branches.length > 0) {
+        const byAcademy: { [key: string]: any[] } = {} as any;
+        for (const b of this.branches) {
+          const aid = String(b.academyDataId || b.AcademyDataId || b.academyId || b.AcademyId || '');
+          if (!aid) continue;
+          if (!byAcademy[aid]) byAcademy[aid] = [];
+          byAcademy[aid].push(b);
+        }
+        // Find first academy that has at least one branch
+        let chosenAcademy = '';
+        let chosenBranch = '';
+        for (const a of this.academies) {
+          const aid = String(a.id || a.Id || '');
+          if (aid && byAcademy[aid] && byAcademy[aid].length) {
+            chosenAcademy = aid;
+            chosenBranch = String(byAcademy[aid][0].id || byAcademy[aid][0].Id || '');
+            break;
+          }
+        }
+        if (chosenAcademy && chosenBranch) {
+          this.selectedAcademy = this.selectedAcademy || chosenAcademy;
+          this.selectedBranch = this.selectedBranch || chosenBranch;
+        }
+      }
+    } catch {
+      // ignore
     }
   }
 
@@ -369,6 +505,13 @@ export class AccountComponent implements OnInit, OnDestroy {
       } else {
         // Create new student record
         const fullName = this.user?.fullName || `${this.user?.firstName || ''} ${this.user?.lastName || ''}`.trim() || 'User';
+        // Ensure we have valid academy and branch before creating to avoid 400
+        this.resolveDefaultAcademyAndBranch();
+        const validAcademy = this.selectedAcademy && this.isValidUUID(this.selectedAcademy);
+        const validBranch = this.selectedBranch && this.isValidUUID(this.selectedBranch);
+        if (!validAcademy || !validBranch) {
+          throw new Error(this.isRtl ? 'يرجى اختيار الأكاديمية والفرع أولاً من أعلى الصفحة.' : 'Please select your academy and branch first at the top of the page.');
+        }
         const createPayload = {
           studentNameL1: fullName,
           studentNameL2: fullName,
@@ -377,8 +520,8 @@ export class AccountComponent implements OnInit, OnDestroy {
           studentEmail: this.user?.email || this.user?.Email,
           linkedIn: linkedInUrl || null,
           facebook: facebookUrl || null,
-          academyDataId: this.selectedAcademy && this.isValidUUID(this.selectedAcademy) ? this.selectedAcademy : null,
-          branchesDataId: this.selectedBranch && this.isValidUUID(this.selectedBranch) ? this.selectedBranch : null,
+          academyDataId: this.selectedAcademy,
+          branchesDataId: this.selectedBranch,
           language: 'ar',
           trainingProvider: 'Academy System',
           studentMobil: phoneNumber,
